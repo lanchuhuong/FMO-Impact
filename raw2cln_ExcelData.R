@@ -70,6 +70,7 @@ fname_out_ICPF <- paste0(clndir,"IC_ProjFin", "_", outdate,".csv")
 fname_out_ICFI <- paste0(clndir,"IC_FinInst", "_", outdate,".csv")
 fname_out_ICPE <- paste0(clndir,"IC_PrivEq", "_", outdate,".csv")
 fname_out_PEFInv <- paste0(clndir,"PEF_Investments", "_", outdate,".csv")
+fname_out_PEFReg <- paste0(clndir,"PEF_RegionPerc", "_", outdate,".csv")
 fname_out_EcEF <- paste0(clndir,"Fctr_EcEmis", "_", outdate,".csv")
 fname_out_CpIF <- paste0(clndir,"Fctr_CapInt", "_", outdate,".csv")
 fname_out_CBBD <- paste0(clndir,"Fctr_CBbrkdwn", "_", outdate,".csv")
@@ -156,6 +157,7 @@ colnames(ICFI) <- sub("FIic_", "", colnames(ICFI))
 write.csv2(ICFI, fname_out_ICFI, row.names = FALSE,
            fileEncoding = "UTF-8")
 rm(raw)
+rm(rawsel)
 
 ## ----------------------------------------------------------------------- 
 ## --- PrivEq --------- READ PE-DATA OUT OF XLS INTO CSV -------------------
@@ -210,8 +212,38 @@ rawsel <- raw %>%
   select(starts_with("PEc_"))
 ICPE <- cbind(raw[,1], rawsel)
 colnames(ICPE) <- sub("PEc_", "", colnames(ICPE))
+rawPEreg <- select(ICPE, starts_with("Region_"))
+rawPEreg <- cbind(ICPE[,1], rawPEreg)
+ICPE <- select(ICPE, -starts_with("Region_"))
 write.csv2(ICPE, fname_out_ICPE, row.names = FALSE,
            fileEncoding = "UTF-8")
+
+## generate private equity fund regions (impact at contract)
+rawsel <- rawPEreg
+colnames(rawsel)[1] <- "Customer_ID"
+ix_regname <- c(2:11)
+ix_regpct <- c(12:21)
+k <- 1
+PEFReg <- data.frame(Customer_ID = character(0),
+                     region_name = character(0),
+                     region_pct = character(0),
+                     stringsAsFactors = FALSE)
+for (i in seq_along(rawsel$Customer_ID)) {
+  for (j in c(1:10)) {
+    if(!is.na(rawsel[i,ix_regpct[j]])) {
+      PEFReg[k,] <- NA
+      PEFReg[k,1] <- as.character(rawsel[i,1])
+      PEFReg[k,2] <- rawsel[i,ix_regname[j]]
+      PEFReg[k,3] <- rawsel[i,ix_regpct[j]]
+      k <- k + 1
+    }
+  }
+}
+PEFReg$region_pct <- as.numeric(PEFReg$region_pct)
+
+write.csv2(PEFReg, fname_out_PEFReg, row.names = FALSE,
+           fileEncoding = "UTF-8")
+rm(rawPEreg)
 
 ## generate private equity fund investments (impact at review)
 rawsel <- raw %>%
@@ -247,6 +279,7 @@ PEFInv$amount <- as.numeric(PEFInv$amount)
 write.csv2(PEFInv, fname_out_PEFInv, row.names = FALSE,
            fileEncoding = "UTF-8")
 rm(raw)
+rm(rawsel)
 
 ## ----------------------------------------------------------------------- 
 ## --- EcEF ---- Economic Emission Factors for Direct Investment ---------
