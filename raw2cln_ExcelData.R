@@ -307,7 +307,7 @@ rm(raw)
 ## ----------------------------------------------------------------------- 
 ## -- EcEF1 -- Economic Emission Factors for Direct Investment (Scope 1) -
 ## ----------------------------------------------------------------------- 
-## 1 - inlezen bestand uit de url, in het geheugen
+## 1 - inlezen bestand uit de url, in het geheugen (also uses CBBD)
 raw <- read_xlsx(fname_in_raw, range = "Economic_Input!C10:S33")
 
 ## 2 - rename column hdrs for easy processing
@@ -336,7 +336,7 @@ rm(raw)
 ## ----------------------------------------------------------------------- 
 ## --- CpIF ---- Capital Intensity Factors per region --------------------
 ## ----------------------------------------------------------------------- 
-## 1 - inlezen bestand uit de url, in het geheugen
+## 1 - inlezen bestand uit de url, in het geheugen (also uses CBBD)
 raw <- read_xlsx(fname_in_raw, range = "Economic_Input!C38:S61")
 
 ## 2 - rename column hdrs for easy processing
@@ -363,11 +363,31 @@ write.csv2(CpIF, fname_out_CpIF, row.names = FALSE,
 rm(raw)
 
 ## ----------------------------------------------------------------------- 
+## --- OutElc ---- Output to Electricity per region ----------------------
+## ----------------------------------------------------------------------- 
+## 1 - inlezen bestand uit de url, in het geheugen
+raw <- read_xlsx(fname_in_raw, range = "Economic_Input!C94:S117")
+
+## 2 - rename column hdrs for easy processing
+hdrs <- colnames(raw)
+hdrs <- gsub(" ", "_", hdrs)
+hdrs <- gsub("_&_", "_", hdrs)
+hdrs[1] <- "GHG_country"
+colnames(raw) <- hdrs
+rm(hdrs)
+
+## 3 - wegschrijven CSV-file in datalake/clean_data
+OutElc <- raw
+write.csv2(OutElc, fname_out_OutElc, row.names = FALSE,
+           fileEncoding = "UTF-8")
+rm(raw)
+
+## ----------------------------------------------------------------------- 
 ## -- EcEF2 -- Economic Emission Factors for Direct Investment (Scope 1) -
 ## ----------------------------------------------------------------------- 
 ## 1 - read data
-## EcEF2 is based on Output of Electricity (OutElc) and 
-## emission factors scope 1 (EcEF1). No new data needed
+## EcEF2 is based on Output of Electricity (OutElc) and emission factors 
+## scope 1 (EcEF1), also the CBBD. No new data needed
 
 ## 2 - rename column hdrs for easy processing
 raw <- EcEF1
@@ -388,26 +408,6 @@ for(i in c(1:nrow(raw))) {
 ## 4 - wegschrijven CSV-file in datalake/clean_data
 EcEF2 <- raw
 write.csv2(EcEF2, fname_out_EcEF2, row.names = FALSE,
-           fileEncoding = "UTF-8")
-rm(raw)
-
-## ----------------------------------------------------------------------- 
-## --- OutElc ---- Output to Electricity per region ----------------------
-## ----------------------------------------------------------------------- 
-## 1 - inlezen bestand uit de url, in het geheugen
-raw <- read_xlsx(fname_in_raw, range = "Economic_Input!C94:S117")
-
-## 2 - rename column hdrs for easy processing
-hdrs <- colnames(raw)
-hdrs <- gsub(" ", "_", hdrs)
-hdrs <- gsub("_&_", "_", hdrs)
-hdrs[1] <- "GHG_country"
-colnames(raw) <- hdrs
-rm(hdrs)
-
-## 3 - wegschrijven CSV-file in datalake/clean_data
-OutElc <- raw
-write.csv2(OutElc, fname_out_OutElc, row.names = FALSE,
            fileEncoding = "UTF-8")
 rm(raw)
 
