@@ -61,9 +61,7 @@ uS001_PE_InvPct <- function(investments, contracted) {
   colnames(PEFRegPct)[3] <- "perc"
 
   ## 7 - Remove contracted percentages if actual investments are present ------
-  RegID <- paste0(PEFRegPct$Customer_ID, "-", PEFRegPct$country)
-  InvID <- paste0(PEFInvPct$Customer_ID, "-", PEFInvPct$country)
-  c <- RegID %in% InvID
+  c <- PEFRegPct$Customer_ID %in% PEFInvPct$Customer_ID
   PEFRegPct <- filter(PEFRegPct, !c)
 
   ## 8 - combine actual and contracted investement percentages ----------------
@@ -84,7 +82,6 @@ uS001_PE_InvPct <- function(investments, contracted) {
     ungroup
 
   ## 10 - Generate output (investment-percentages per customer/country --------
-  ## Out <- arrange(DF_Out, Customer_ID, GHG_country)
-  Out <- DF_Out
+  Out <- arrange(DF_Out, Customer_ID, GHG_country)
   return(Out)
 }
