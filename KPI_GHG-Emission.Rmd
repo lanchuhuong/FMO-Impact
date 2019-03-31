@@ -46,7 +46,8 @@ library("tidyverse", warn.conflicts=FALSE)      ## load tidyverse silently
 
 ## Source micro-services
 ## 1. contains all microservices for first KPI
-source("microservices/uS_microservices.R")
+source("microservices/uS001_PE_InvPct.R")
+source("microservices/uS002_PE_ConsolidateFactors.R")
 
 ## Setup locations
 rawdir <- "datalake/raw_data/"
@@ -73,7 +74,8 @@ fname_in_ICFI <- paste0(clndir,"IC_FinInst", "_", outdate,".csv")
 fname_in_ICPE <- paste0(clndir,"IC_PrivEq", "_", outdate,".csv")
 fname_in_PEFInv <- paste0(clndir,"PEF_Investments", "_", outdate,".csv")
 fname_in_PEFReg <- paste0(clndir,"PEF_RegionPerc", "_", outdate,".csv")
-fname_in_EcEF <- paste0(clndir,"Fctr_EcEmis", "_", outdate,".csv")
+fname_in_EcEF1 <- paste0(clndir,"Fctr_EcEmis1", "_", outdate,".csv")
+fname_in_EcEF2 <- paste0(clndir,"Fctr_EcEmis2", "_", outdate,".csv")
 fname_in_CpIF <- paste0(clndir,"Fctr_CapInt", "_", outdate,".csv")
 fname_in_CBBD <- paste0(clndir,"Fctr_CBbrkdwn", "_", outdate,".csv")
 fname_in_OutElc <- paste0(clndir,"Fctr_Out2Elec", "_", outdate,".csv")
@@ -96,5 +98,48 @@ PEFReg <- read.csv2(fname_in_PEFReg, stringsAsFactors = FALSE,
 PEFInvPct <- uS001_PE_InvPct(investments = PEFInv,
                              contracted = PEFReg)
 head(PEFInvPct, 5)
+```
+
+### Consolidating PK-Factors (Cap.Intensity)
+Consolidate Capital Intensity Factors (GHG-country/sector) per customer
+
+```{r 2.PEF-ConsPKFct, ECHO = TRUE}
+CpIF <- read.csv2(fname_in_CpIF, stringsAsFactors = FALSE,
+                    fileEncoding = "UTF-8")
+PEF_ConsPKfctrs <- uS002_PE_ConsolidateFactors(invperc = PEFInvPct,
+                             factors = CpIF)
+head(PEF_ConsPKfctrs, 5)
+```
+### Consolidating EcEF - scope 2
+Consolidate emission fators (scope 2) per customer
+
+```{r 3.PEF-ConsEc2Fct, ECHO = TRUE}
+EcEF2 <- read.csv2(fname_in_EcEF2, stringsAsFactors = FALSE,
+                    fileEncoding = "UTF-8")
+PEF_ConsEC2fctrs <- uS002_PE_ConsolidateFactors(invperc = PEFInvPct,
+                             factors = EcEF2)
+head(PEF_ConsEC2fctrs, 5)
+```
+### Consolidating EcEF - scope 1
+Consolidate emission fators (scope 1) per customer
+
+```{r 4.PEF-ConsEc1Fct, ECHO = TRUE}
+EcEF1 <- read.csv2(fname_in_EcEF1, stringsAsFactors = FALSE,
+                    fileEncoding = "UTF-8")
+PEF_ConsEC1fctrs <- uS002_PE_ConsolidateFactors(invperc = PEFInvPct,
+                             factors = EcEF1)
+head(PEF_ConsEC1fctrs, 5)
+```
+### Consolidate IC-Sectors per PEF-customer
+Calculate the PEF-investments (or contracted if not present) for each PEF-customer for each Impact Card Sector
+
+```{r 5.PEF-ConsSect, ECHO = TRUE}
+ICPE <- read.csv2(fname_in_ICPE, stringsAsFactors = FALSE,
+                    fileEncoding = "UTF-8")
+PEFInv <- read.csv2(fname_in_PEFInv, stringsAsFactors = FALSE,
+                    fileEncoding = "UTF-8")
+PEFConsSctrs <- uS001_PE_ConsolidateSectors(investments = PEFInv,
+                             contracted = ICPE)
+head(PEFConsSctrs, 5)
 ```
 
