@@ -1,11 +1,11 @@
 ## ----------------------------------------------------------------------- 
-## -- uS00#_PE_ConsolidateSectors ---------------------------------------- 
+## -- uS003_PE_ConsolidateSectors ---------------------------------------- 
 ## ----------------------------------------------------------------------- 
 ## Generates investment percentage per IC-sector for PEF-customers
 ## GVersteeg, March 28th, 2019
 ##
 ## DESCRIPTION
-## This function calculates investment percentage per Impacr Card Sector
+## This function calculates investment percentage per Impact Card Sector
 ## for each PEF-customer. First it tries to find actual investments (at review)
 ## as present in "Investments". If no actual investments are made
 ## than we try to use the indicated sectors at the time of contracting
