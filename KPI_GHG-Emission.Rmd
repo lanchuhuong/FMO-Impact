@@ -1,0 +1,100 @@
+---
+title: "Prototype KPI-script: Absolute GHG Accounting"
+author: "Gerrit Versteeg"
+date: "March 31th, 2019"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Absolute GHG Accounting
+This KPI-script calculates
+
+## Four models
+
+## Overview steps in script
+
+# Data Processing
+## Setting up the environment
+
+***
+IN/OUTPUT
+
+| In/Out | Filename   |  Size | Description |
+|:------|:------------------|----:|:------------------------------|
+| Input | CustFac_General.csv | 247/18 | |
+| Input | IC_Corporate.csv | 48/7 | |
+| Input | IC_ProjFin.csv | 59/6 | |
+| Input | IC_FinInst.csv | 101/23 | |
+| Input | IC_PrivEq.csv | 39/43 | |
+| Input | PEF_Investments.csv | 117/5 | |
+| Input | PEF_RegionPerc.csv | 18/3 | |
+| Input | Fctr_EcEmis.csv | 23/17 | |
+| Input | Fctr_CapInt.csv | 23/17 | |
+| Input | Fctr_CBbrkdwn.csv | 23/17 | |
+| Input | Fctr_Out2Elec.csv | 23/17 | |
+| LUT | MAP_CntrReg.csv | 87/2 | |
+| LUT | MAP_SctrMdl.csv | 21/2 | |
+| LUT | MAP_ICSctrMdl.csv | 18/2 | |
+
+***
+
+```{r setup_env,ECHO = TRUE}
+library("tidyverse", warn.conflicts=FALSE)      ## load tidyverse silently
+
+## Source micro-services
+## 1. contains all microservices for first KPI
+source("microservices/uS_microservices.R")
+
+## Setup locations
+rawdir <- "datalake/raw_data/"
+lutdir <- "datalake/luts/"
+clndir <- "datalake/clean_data/"
+valdir <- "datalake/valid_data/"
+inddir <- "datalake/indicators/"
+dptdir <- "datalake/data_points/"
+laydir <- "datalake/infoproducts/GIS_layers/"
+qlkdir <- "datalake/infoproducts/Qlik_cubes/"
+sopdir <- "datalake/infoproducts/sopact_sheets/"
+
+## Setup parameters
+version <- ""
+indate = "2019-03-31"
+lutdate = "2019-03-31"
+outdate = "2019-03-31"
+
+## Setup filenames
+fname_in_custG <- paste0(clndir,"CustFac_General", "_", outdate,".csv")
+fname_in_ICCp <- paste0(clndir,"IC_Corporate", "_", outdate,".csv")
+fname_in_ICPF <- paste0(clndir,"IC_ProjFin", "_", outdate,".csv")
+fname_in_ICFI <- paste0(clndir,"IC_FinInst", "_", outdate,".csv")
+fname_in_ICPE <- paste0(clndir,"IC_PrivEq", "_", outdate,".csv")
+fname_in_PEFInv <- paste0(clndir,"PEF_Investments", "_", outdate,".csv")
+fname_in_PEFReg <- paste0(clndir,"PEF_RegionPerc", "_", outdate,".csv")
+fname_in_EcEF <- paste0(clndir,"Fctr_EcEmis", "_", outdate,".csv")
+fname_in_CpIF <- paste0(clndir,"Fctr_CapInt", "_", outdate,".csv")
+fname_in_CBBD <- paste0(clndir,"Fctr_CBbrkdwn", "_", outdate,".csv")
+fname_in_OutElc <- paste0(clndir,"Fctr_Out2Elec", "_", outdate,".csv")
+fname_lut_Map_CntrReg <- paste0(lutdir,"Map_CntrReg", "_", outdate,".csv")
+fname_lut_Map_SctrMdl <- paste0(lutdir,"Map_SctrMdl", "_", outdate,".csv")
+fname_lut_Map_ICSctrMdl <- paste0(lutdir,"Map_ICSctrMdl", "_", outdate,".csv")
+fname_out <- paste0(inddir,"KPI_AbsGHGAcc", "_", outdate,".csv")
+
+```
+
+## Prive Equity Fund Preparation
+### Determining Investment Percentages per Country
+Calculate investment percentage per PEF-customer per country
+
+```{r 1.PEF-InvPct, ECHO = TRUE}
+PEFInv <- read.csv2(fname_in_PEFInv, stringsAsFactors = FALSE,
+                    fileEncoding = "UTF-8")
+PEFReg <- read.csv2(fname_in_PEFReg, stringsAsFactors = FALSE,
+                    fileEncoding = "UTF-8")
+PEFInvPct <- uS001_PE_InvPct(investments = PEFInv,
+                             contracted = PEFReg)
+head(PEFInvPct, 5)
+```
+
