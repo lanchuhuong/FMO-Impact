@@ -49,6 +49,7 @@ library("tidyverse", warn.conflicts=FALSE)      ## load tidyverse silently
 source("microservices/uS001_PE_InvPct.R")
 source("microservices/uS002_PE_ConsolidateFactors.R")
 source("microservices/uS003_PE_ConsolidateSectors.R")
+source("microservices/uS004_PE_ConsolidateSize.R")
 
 ## Setup locations
 rawdir <- "datalake/raw_data/"
@@ -142,5 +143,18 @@ PEFInv <- read.csv2(fname_in_PEFInv, stringsAsFactors = FALSE,
 PEFConsSctrs <- uS003_PE_ConsolidateSectors(investments = PEFInv,
                              contracted = ICPE)
 head(PEFConsSctrs, 5)
+```
+
+### Consolidate investments towards size per PEF-customer
+Calculate the PEF-investments (or contracted if not present) for each PEF-customer for each size (SME versus Corporate)
+
+```{r 5.PEF-ConsSect, ECHO = TRUE}
+ICPE <- read.csv2(fname_in_ICPE, stringsAsFactors = FALSE,
+                    fileEncoding = "UTF-8")
+PEFInv <- read.csv2(fname_in_PEFInv, stringsAsFactors = FALSE,
+                    fileEncoding = "UTF-8")
+PEFConsSize <- uS004_PE_ConsolidateSize(investments = PEFInv,
+                             contracted = ICPE)
+head(PEFConsSize, 5)
 ```
 
