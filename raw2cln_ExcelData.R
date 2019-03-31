@@ -64,7 +64,7 @@ lutdate = ""
 outdate = "2019-03-31"
 
 ## Setup filenames
-fname_in_raw <- paste0(rawdir,"Absolute GHG Accounting", indate,".xlsx")
+fname_in_raw <- paste0(rawdir,"Absolute GHG Accounting.xlsx")
 fname_out_custG <- paste0(clndir,"CustFac_General", "_", outdate,".csv")
 fname_out_ICCp <- paste0(clndir,"IC_Corporate", "_", outdate,".csv")
 fname_out_ICPF <- paste0(clndir,"IC_ProjFin", "_", outdate,".csv")
@@ -283,6 +283,26 @@ rm(raw)
 rm(rawsel)
 
 ## ----------------------------------------------------------------------- 
+## --- CBBD ---- Central Bank Breakdown per region -----------------------
+## ----------------------------------------------------------------------- 
+## 1 - inlezen bestand uit de url, in het geheugen
+raw <- read_xlsx(fname_in_raw, range = "Economic_Input!C66:S89")
+
+## 2 - rename column hdrs for easy processing
+hdrs <- colnames(raw)
+hdrs <- gsub(" ", "_", hdrs)
+hdrs <- gsub("_&_", "_", hdrs)
+hdrs[1] <- "GHG_Country"
+colnames(raw) <- hdrs
+rm(hdrs)
+
+## 3 - wegschrijven CSV-file in datalake/clean_data
+CBBD <- raw
+write.csv2(CBBD, fname_out_CBBD, row.names = FALSE,
+           fileEncoding = "UTF-8")
+rm(raw)
+
+## ----------------------------------------------------------------------- 
 ## --- EcEF ---- Economic Emission Factors for Direct Investment ---------
 ## ----------------------------------------------------------------------- 
 ## 1 - inlezen bestand uit de url, in het geheugen
@@ -292,14 +312,20 @@ raw <- read_xlsx(fname_in_raw, range = "Economic_Input!C10:S33")
 hdrs <- colnames(raw)
 hdrs <- gsub(" ", "_", hdrs)
 hdrs <- gsub("_&_", "_", hdrs)
-hdrs[1] <- "Region"
+hdrs[1] <- "GHG_country"
 colnames(raw) <- hdrs
 rm(hdrs)
 
-## 4 - classify variables
-raw$Region <- as.factor(raw$Region)
+## 3 - add two extra columns (50BS/50C and CB-Breakdown)
+raw <- mutate(raw, BSC_5050 = (Business_services/2 + Construction/2))
+raw <- mutate(raw, CB_Bd = NA)
+for(i in c(1:nrow(raw))) {
+  v1 <- raw[i,2:17]
+  v2 <- CBBD[i,2:17]
+  raw$CB_Bd[i] <- sum(v1*v2)
+}
 
-## 6 - wegschrijven CSV-file in datalake/clean_data
+## 3 - wegschrijven CSV-file in datalake/clean_data
 EcEF <- raw
 write.csv2(EcEF, fname_out_EcEF, row.names = FALSE,
            fileEncoding = "UTF-8")
@@ -315,39 +341,22 @@ raw <- read_xlsx(fname_in_raw, range = "Economic_Input!C38:S61")
 hdrs <- colnames(raw)
 hdrs <- gsub(" ", "_", hdrs)
 hdrs <- gsub("_&_", "_", hdrs)
-hdrs[1] <- "Region"
+hdrs[1] <- "GHG_country"
 colnames(raw) <- hdrs
 rm(hdrs)
 
-## 4 - classify variables
-raw$Region <- as.factor(raw$Region)
+## 3 - add two extra columns (50BS/50C and CB-Breakdown)
+raw <- mutate(raw, BSC_5050 = (Business_services/2 + Construction/2))
+raw <- mutate(raw, CB_Bd = NA)
+for(i in c(1:nrow(raw))) {
+  v1 <- raw[i,2:17]
+  v2 <- CBBD[i,2:17]
+  raw$CB_Bd[i] <- sum(v1*v2)
+}
 
-## 6 - wegschrijven CSV-file in datalake/clean_data
+## 4 - wegschrijven CSV-file in datalake/clean_data
 CpIF <- raw
 write.csv2(CpIF, fname_out_CpIF, row.names = FALSE,
-           fileEncoding = "UTF-8")
-rm(raw)
-
-## ----------------------------------------------------------------------- 
-## --- CBBD ---- Central Bank Breakdown per region -----------------------
-## ----------------------------------------------------------------------- 
-## 1 - inlezen bestand uit de url, in het geheugen
-raw <- read_xlsx(fname_in_raw, range = "Economic_Input!C66:S89")
-
-## 2 - rename column hdrs for easy processing
-hdrs <- colnames(raw)
-hdrs <- gsub(" ", "_", hdrs)
-hdrs <- gsub("_&_", "_", hdrs)
-hdrs[1] <- "Region"
-colnames(raw) <- hdrs
-rm(hdrs)
-
-## 4 - classify variables
-raw$Region <- as.factor(raw$Region)
-
-## 6 - wegschrijven CSV-file in datalake/clean_data
-CBBD <- raw
-write.csv2(CBBD, fname_out_CBBD, row.names = FALSE,
            fileEncoding = "UTF-8")
 rm(raw)
 
@@ -361,14 +370,11 @@ raw <- read_xlsx(fname_in_raw, range = "Economic_Input!C94:S117")
 hdrs <- colnames(raw)
 hdrs <- gsub(" ", "_", hdrs)
 hdrs <- gsub("_&_", "_", hdrs)
-hdrs[1] <- "Region"
+hdrs[1] <- "GHG_country"
 colnames(raw) <- hdrs
 rm(hdrs)
 
-## 4 - classify variables
-raw$Region <- as.factor(raw$Region)
-
-## 6 - wegschrijven CSV-file in datalake/clean_data
+## 3 - wegschrijven CSV-file in datalake/clean_data
 OutElc <- raw
 write.csv2(OutElc, fname_out_OutElc, row.names = FALSE,
            fileEncoding = "UTF-8")
