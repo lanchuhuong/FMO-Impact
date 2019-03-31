@@ -22,8 +22,9 @@
 ## --       : IC_PrivEq_20190331.csv            (39     / 43)           -- 
 ## --       : PEF_Investments_20190331.csv      (117    / 5 )           -- 
 ## --       : PEF_RegionPerc_20190331.csv       (18     / 3 )           -- 
-## --       : Fctr_EcEmis_20190331.csv          (23     / 17)           -- 
-## --       : Fctr_CapInt_20190331.csv          (23     / 17)           -- 
+## --       : Fctr_EcEmis1_20190331.csv         (23     / 19)           -- 
+## --       : Fctr_EcEmis2_20190331.csv         (23     / 19)           -- 
+## --       : Fctr_CapInt_20190331.csv          (23     / 19)           -- 
 ## --       : Fctr_CBbrkdwn_20190331.csv        (23     / 17)           -- 
 ## --       : Fctr_Out2Elec_20190331.csv        (23     / 17)           -- 
 ## --       : MAP_CntrReg_20190331.csv          (87     / 2 )           -- 
@@ -72,7 +73,8 @@ fname_out_ICFI <- paste0(clndir,"IC_FinInst", "_", outdate,".csv")
 fname_out_ICPE <- paste0(clndir,"IC_PrivEq", "_", outdate,".csv")
 fname_out_PEFInv <- paste0(clndir,"PEF_Investments", "_", outdate,".csv")
 fname_out_PEFReg <- paste0(clndir,"PEF_RegionPerc", "_", outdate,".csv")
-fname_out_EcEF <- paste0(clndir,"Fctr_EcEmis", "_", outdate,".csv")
+fname_out_EcEF1 <- paste0(clndir,"Fctr_EcEmis1", "_", outdate,".csv")
+fname_out_EcEF2 <- paste0(clndir,"Fctr_EcEmis2", "_", outdate,".csv")
 fname_out_CpIF <- paste0(clndir,"Fctr_CapInt", "_", outdate,".csv")
 fname_out_CBBD <- paste0(clndir,"Fctr_CBbrkdwn", "_", outdate,".csv")
 fname_out_OutElc <- paste0(clndir,"Fctr_Out2Elec", "_", outdate,".csv")
@@ -303,7 +305,7 @@ write.csv2(CBBD, fname_out_CBBD, row.names = FALSE,
 rm(raw)
 
 ## ----------------------------------------------------------------------- 
-## --- EcEF ---- Economic Emission Factors for Direct Investment ---------
+## -- EcEF1 -- Economic Emission Factors for Direct Investment (Scope 1) -
 ## ----------------------------------------------------------------------- 
 ## 1 - inlezen bestand uit de url, in het geheugen
 raw <- read_xlsx(fname_in_raw, range = "Economic_Input!C10:S33")
@@ -326,8 +328,8 @@ for(i in c(1:nrow(raw))) {
 }
 
 ## 3 - wegschrijven CSV-file in datalake/clean_data
-EcEF <- raw
-write.csv2(EcEF, fname_out_EcEF, row.names = FALSE,
+EcEF1 <- raw
+write.csv2(EcEF1, fname_out_EcEF1, row.names = FALSE,
            fileEncoding = "UTF-8")
 rm(raw)
 
@@ -357,6 +359,35 @@ for(i in c(1:nrow(raw))) {
 ## 4 - wegschrijven CSV-file in datalake/clean_data
 CpIF <- raw
 write.csv2(CpIF, fname_out_CpIF, row.names = FALSE,
+           fileEncoding = "UTF-8")
+rm(raw)
+
+## ----------------------------------------------------------------------- 
+## -- EcEF2 -- Economic Emission Factors for Direct Investment (Scope 1) -
+## ----------------------------------------------------------------------- 
+## 1 - read data
+## EcEF2 is based on Output of Electricity (OutElc) and 
+## emission factors scope 1 (EcEF1). No new data needed
+
+## 2 - rename column hdrs for easy processing
+raw <- EcEF1
+raw[,2:19] <- 0
+for(i in seq_along(raw$GHG_country)){
+  raw[i,2:17] <- OutElc[i,2:17] * EcEF1$Electricity[i]
+}
+
+## 3 - add two extra columns (50BS/50C and CB-Breakdown)
+raw <- mutate(raw, BSC_5050 = (Business_services/2 + Construction/2))
+raw <- mutate(raw, CB_Bd = NA)
+for(i in c(1:nrow(raw))) {
+  v1 <- raw[i,2:17]
+  v2 <- CBBD[i,2:17]
+  raw$CB_Bd[i] <- sum(v1*v2)
+}
+
+## 4 - wegschrijven CSV-file in datalake/clean_data
+EcEF2 <- raw
+write.csv2(EcEF2, fname_out_EcEF2, row.names = FALSE,
            fileEncoding = "UTF-8")
 rm(raw)
 
