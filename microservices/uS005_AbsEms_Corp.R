@@ -22,7 +22,7 @@
 ## ----------------------------------------------------------------------- 
 ##
 ## LOGIC
-uS005_AbsEms_Corp <- function(impactcard, customers, factors,
+uS005_AbsEms_Corp <- function(impactcard, customers, factors, scope,
                               countrymap, sectormap) {
   require(tidyverse)
   ## 1 - Read in parameters -------------------------------------------------
@@ -43,16 +43,30 @@ uS005_AbsEms_Corp <- function(impactcard, customers, factors,
     dfAE[i,] <- NA
     curcust <- custG$Customer_ID[i]
     dfAE$Customer_ID[i] <- curcust
-    nocando <- is.na(ICCp$GHG_Scope_1[ICCp$Customer_ID == curcust]) |
-      is.na(ICCp$Non_current_assets[ICCp$Customer_ID == curcust])
-    if(!nocando){
-      AbsEms <- (ICCp$GHG_Scope_1[ICCp$Customer_ID == curcust] *
-      custG$Net_portfolio[i] /
-      ICCp$Non_current_assets[ICCp$Customer_ID == curcust])
-      AbsEms <- ifelse(AbsEms < 0, 0, AbsEms)
-      dfAE$method[i] <- "primary"
-      dfAE$abs_ems[i] <- AbsEms
+    if(scope == 1){
+      nocando <- is.na(ICCp$GHG_Scope_1[ICCp$Customer_ID == curcust]) |
+        is.na(ICCp$Non_current_assets[ICCp$Customer_ID == curcust])
+      if(!nocando){
+        AbsEms <- (ICCp$GHG_Scope_1[ICCp$Customer_ID == curcust] *
+        custG$Net_portfolio[i] /
+        ICCp$Non_current_assets[ICCp$Customer_ID == curcust])
+        AbsEms <- ifelse(AbsEms < 0, 0, AbsEms)
+        dfAE$method[i] <- "primary"
+        dfAE$abs_ems[i] <- AbsEms
       }
+    }
+    if(scope == 2){
+      nocando <- is.na(ICCp$GHG_Scope_2[ICCp$Customer_ID == curcust]) |
+        is.na(ICCp$Non_current_assets[ICCp$Customer_ID == curcust])
+      if(!nocando){
+        AbsEms <- (ICCp$GHG_Scope_2[ICCp$Customer_ID == curcust] *
+                     custG$Net_portfolio[i] /
+                     ICCp$Non_current_assets[ICCp$Customer_ID == curcust])
+        AbsEms <- ifelse(AbsEms < 0, 0, AbsEms)
+        dfAE$method[i] <- "primary"
+        dfAE$abs_ems[i] <- AbsEms
+      }
+    }
   } 
 
   ## 3 - get list of comparable EcEF-columnheaders (temporary) ---------------
