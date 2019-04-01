@@ -51,6 +51,8 @@ source("microservices/uS001_PE_InvPct.R")
 source("microservices/uS002_PE_ConsolidateFactors.R")
 source("microservices/uS003_PE_ConsolidateSectors.R")
 source("microservices/uS004_PE_ConsolidateSize.R")
+source("microservices/uS005_AbsEms_Corp.R")
+source("microservices/uS006_AbsEms_PrFin.R")
 
 ## Setup locations
 rawdir <- "datalake/raw_data/"
@@ -180,6 +182,7 @@ Calculate absolute emissions (Scope 1) for each Corporate customer.
 ```{r 7.AbsEms-Corp1, ECHO = TRUE}
 custG <- read.csv2(fname_in_custG, stringsAsFactors = FALSE,
                     fileEncoding = "UTF-8")
+custG <- custG[custG$IC_type == "corporate",]
 ICCp <- read.csv2(fname_in_ICCp, stringsAsFactors = FALSE,
                     fileEncoding = "UTF-8")
 EcEF <- read.csv2(fname_in_EcEF1, stringsAsFactors = FALSE,
@@ -188,14 +191,16 @@ lutC <- read.csv2(fname_in_lutC, stringsAsFactors = FALSE,
                     fileEncoding = "UTF-8")
 lutS <- read.csv2(fname_in_lutS, stringsAsFactors = FALSE,
                     fileEncoding = "UTF-8")
-custG <- custG[custG$IC_type == "corporate",]
+
 AE_Corp1 <- uS005_AbsEms_Corp(impactcard = ICCp,
                              customers = custG,
                              factors = EcEF,
+                             scope = 1,
                              countrymap = lutC,
                              sectormap = lutS)
 head(AE_Corp1, 5)
 ```
+
 ### Corporates (scope 2)
 
 Calculate absolute emissions (Scope 2) for each Corporate customer.
@@ -203,6 +208,7 @@ Calculate absolute emissions (Scope 2) for each Corporate customer.
 ```{r 8.AbsEms-Corp2, ECHO = TRUE}
 custG <- read.csv2(fname_in_custG, stringsAsFactors = FALSE,
                     fileEncoding = "UTF-8")
+custG <- custG[custG$IC_type == "corporate",]
 ICCp <- read.csv2(fname_in_ICCp, stringsAsFactors = FALSE,
                     fileEncoding = "UTF-8")
 EcEF <- read.csv2(fname_in_EcEF2, stringsAsFactors = FALSE,
@@ -211,11 +217,64 @@ lutC <- read.csv2(fname_in_lutC, stringsAsFactors = FALSE,
                     fileEncoding = "UTF-8")
 lutS <- read.csv2(fname_in_lutS, stringsAsFactors = FALSE,
                     fileEncoding = "UTF-8")
-custG <- custG[custG$IC_type == "corporate",]
+
 AE_Corp2 <- uS005_AbsEms_Corp(impactcard = ICCp,
                              customers = custG,
                              factors = EcEF,
+                             scope = 2,
                              countrymap = lutC,
                              sectormap = lutS)
 head(AE_Corp2, 5)
+```
+
+### Project-Finances (scope 1)
+
+Calculate absolute emissions (Scope 1) for each project finance customer.
+
+```{r 9.AbsEms-PF1, ECHO = TRUE}
+custG <- read.csv2(fname_in_custG, stringsAsFactors = FALSE,
+                    fileEncoding = "UTF-8")
+custG <- custG[custG$IC_type == "project finance",]
+ICPF <- read.csv2(fname_in_ICPF, stringsAsFactors = FALSE,
+                    fileEncoding = "UTF-8")
+EcEF <- read.csv2(fname_in_EcEF1, stringsAsFactors = FALSE,
+                    fileEncoding = "UTF-8")
+lutC <- read.csv2(fname_in_lutC, stringsAsFactors = FALSE,
+                    fileEncoding = "UTF-8")
+lutS <- read.csv2(fname_in_lutS, stringsAsFactors = FALSE,
+                    fileEncoding = "UTF-8")
+
+AE_PrFin1 <- uS006_AbsEms_PrFin(impactcard = ICPF,
+                             customers = custG,
+                             factors = EcEF,
+                             scope = 1,
+                             countrymap = lutC,
+                             sectormap = lutS)
+head(AE_PrFin1, 5)
+```
+
+### Project-Finances (scope 2)
+
+Calculate absolute emissions (Scope 2) for each project finance customer.
+
+```{r 10.AbsEms-PF2, ECHO = TRUE}
+custG <- read.csv2(fname_in_custG, stringsAsFactors = FALSE,
+                    fileEncoding = "UTF-8")
+ICPF <- read.csv2(fname_in_ICPF, stringsAsFactors = FALSE,
+                    fileEncoding = "UTF-8")
+custG <- custG[custG$IC_type == "project finance",]
+EcEF <- read.csv2(fname_in_EcEF2, stringsAsFactors = FALSE,
+                    fileEncoding = "UTF-8")
+lutC <- read.csv2(fname_in_lutC, stringsAsFactors = FALSE,
+                    fileEncoding = "UTF-8")
+lutS <- read.csv2(fname_in_lutS, stringsAsFactors = FALSE,
+                    fileEncoding = "UTF-8")
+
+AE_PrFin2 <- uS006_AbsEms_PrFin(impactcard = ICPF,
+                             customers = custG,
+                             factors = EcEF,
+                             scope = 2,
+                             countrymap = lutC,
+                             sectormap = lutS)
+head(AE_PrFin2, 5)
 ```
