@@ -31,8 +31,9 @@ IN/OUTPUT
 | Input | IC_PrivEq.csv | 39/43 | |
 | Input | PEF_Investments.csv | 117/5 | |
 | Input | PEF_RegionPerc.csv | 18/3 | |
-| Input | Fctr_EcEmis.csv | 23/17 | |
-| Input | Fctr_CapInt.csv | 23/17 | |
+| Input | Fctr_EcEmis1.csv | 23/19 | |
+| Input | Fctr_EcEmis2.csv | 23/19 | |
+| Input | Fctr_CapInt.csv | 23/19 | |
 | Input | Fctr_CBbrkdwn.csv | 23/17 | |
 | Input | Fctr_Out2Elec.csv | 23/17 | |
 | LUT | MAP_CntrReg.csv | 87/2 | |
@@ -81,12 +82,23 @@ fname_in_EcEF2 <- paste0(clndir,"Fctr_EcEmis2", "_", outdate,".csv")
 fname_in_CpIF <- paste0(clndir,"Fctr_CapInt", "_", outdate,".csv")
 fname_in_CBBD <- paste0(clndir,"Fctr_CBbrkdwn", "_", outdate,".csv")
 fname_in_OutElc <- paste0(clndir,"Fctr_Out2Elec", "_", outdate,".csv")
-fname_lut_Map_CntrReg <- paste0(lutdir,"Map_CntrReg", "_", outdate,".csv")
-fname_lut_Map_SctrMdl <- paste0(lutdir,"Map_SctrMdl", "_", outdate,".csv")
-fname_lut_Map_ICSctrMdl <- paste0(lutdir,"Map_ICSctrMdl", "_", outdate,".csv")
+fname_in_lutC <- paste0(lutdir,"Map_CntrReg", "_", outdate,".csv")
+fname_in_lutS <- paste0(lutdir,"Map_SctrMdl", "_", outdate,".csv")
+fname_in_lutICS <- paste0(lutdir,"Map_ICSctrMdl", "_", outdate,".csv")
 fname_out <- paste0(inddir,"KPI_AbsGHGAcc", "_", outdate,".csv")
 
 ```
+
+
+## General customers
+### Determining customer types
+
+```{r 1.PEF-InvPct, ECHO = TRUE}
+custG <- read.csv2(fname_in_custG, stringsAsFactors = FALSE,
+                    fileEncoding = "UTF-8")
+table(custG$IC_type)
+```
+
 
 ## Prive Equity Fund Preparation
 ### Determining Investment Percentages per Country
@@ -148,7 +160,7 @@ head(PEFConsSctrs, 5)
 ### Consolidate investments towards size per PEF-customer
 Calculate the PEF-investments (or contracted if not present) for each PEF-customer for each size (SME versus Corporate)
 
-```{r 5.PEF-ConsSect, ECHO = TRUE}
+```{r 6.PEF-ConsSect, ECHO = TRUE}
 ICPE <- read.csv2(fname_in_ICPE, stringsAsFactors = FALSE,
                     fileEncoding = "UTF-8")
 PEFInv <- read.csv2(fname_in_PEFInv, stringsAsFactors = FALSE,
@@ -158,3 +170,52 @@ PEFConsSize <- uS004_PE_ConsolidateSize(investments = PEFInv,
 head(PEFConsSize, 5)
 ```
 
+
+## Calculate Absolute Emissions
+
+### Corporates (scope 1)
+
+Calculate absolute emissions (Scope 1) for each Corporate customer.
+
+```{r 7.AbsEms-Corp1, ECHO = TRUE}
+custG <- read.csv2(fname_in_custG, stringsAsFactors = FALSE,
+                    fileEncoding = "UTF-8")
+ICCp <- read.csv2(fname_in_ICCp, stringsAsFactors = FALSE,
+                    fileEncoding = "UTF-8")
+EcEF <- read.csv2(fname_in_EcEF1, stringsAsFactors = FALSE,
+                    fileEncoding = "UTF-8")
+lutC <- read.csv2(fname_in_lutC, stringsAsFactors = FALSE,
+                    fileEncoding = "UTF-8")
+lutS <- read.csv2(fname_in_lutS, stringsAsFactors = FALSE,
+                    fileEncoding = "UTF-8")
+custG <- custG[custG$IC_type == "corporate",]
+AE_Corp1 <- uS005_AbsEms_Corp(impactcard = ICCp,
+                             customers = custG,
+                             factors = EcEF,
+                             countrymap = lutC,
+                             sectormap = lutS)
+head(AE_Corp1, 5)
+```
+### Corporates (scope 2)
+
+Calculate absolute emissions (Scope 2) for each Corporate customer.
+
+```{r 8.AbsEms-Corp2, ECHO = TRUE}
+custG <- read.csv2(fname_in_custG, stringsAsFactors = FALSE,
+                    fileEncoding = "UTF-8")
+ICCp <- read.csv2(fname_in_ICCp, stringsAsFactors = FALSE,
+                    fileEncoding = "UTF-8")
+EcEF <- read.csv2(fname_in_EcEF2, stringsAsFactors = FALSE,
+                    fileEncoding = "UTF-8")
+lutC <- read.csv2(fname_in_lutC, stringsAsFactors = FALSE,
+                    fileEncoding = "UTF-8")
+lutS <- read.csv2(fname_in_lutS, stringsAsFactors = FALSE,
+                    fileEncoding = "UTF-8")
+custG <- custG[custG$IC_type == "corporate",]
+AE_Corp2 <- uS005_AbsEms_Corp(impactcard = ICCp,
+                             customers = custG,
+                             factors = EcEF,
+                             countrymap = lutC,
+                             sectormap = lutS)
+head(AE_Corp2, 5)
+```
