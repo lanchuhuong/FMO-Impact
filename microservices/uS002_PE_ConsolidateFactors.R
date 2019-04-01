@@ -33,6 +33,7 @@ uS002_PE_ConsolidateFactors <- function(invperc, factors) {
 
   ## 2 - setup complete PEFInvPct dataframe ------------------------------
   cntr <- str_sort(unique(lut$Model_Region))
+  cntr <- cntr[c(1:17,19,18,20:23)]
   cust <- unique(IP$Customer_ID)
   IPcpl <- data.frame(Customer_ID = character(0),
                    GHG_country = character(0),
