@@ -99,14 +99,14 @@ fname_in_PEFConsEC2fctrs <- paste0(dptdir,"PEF_ConsECF2", "_", outdate,".csv")
 fname_in_PEFConsSize <- paste0(dptdir,"PEF_ConsSize", "_", outdate,".csv")
 fname_in_PEFConsSctrs <- paste0(dptdir,"PEF_ConsSctrs", "_", outdate,".csv")
 
-fname_out_AE_Corp1 <- paste0(dptdir,"KPI_aGHG_Corp1", "_", outdate,".csv")
-fname_out_AE_Corp2 <- paste0(dptdir,"KPI_aGHG_Corp2", "_", outdate,".csv")
-fname_out_AE_PrFin1 <- paste0(dptdir,"KPI_aGHG_PrFin1", "_", outdate,".csv")
-fname_out_AE_PrFin2 <- paste0(dptdir,"KPI_aGHG_PrFin2", "_", outdate,".csv")
-fname_out_AE_PrEq1 <- paste0(dptdir,"KPI_aGHG_PrEq1", "_", outdate,".csv")
-fname_out_AE_PrEq2 <- paste0(dptdir,"KPI_aGHG_PrEq2", "_", outdate,".csv")
-fname_out_AE_FI1 <- paste0(dptdir,"KPI_aGHG_FI1", "_", outdate,".csv")
-fname_out_AE_FI2 <- paste0(dptdir,"KPI_aGHG_FI2", "_", outdate,".csv")
+fname_out_AE_Corp1 <- paste0(inddir,"KPI_aGHG_Corp1", "_", outdate,".csv")
+fname_out_AE_Corp2 <- paste0(inddir,"KPI_aGHG_Corp2", "_", outdate,".csv")
+fname_out_AE_PrFin1 <- paste0(inddir,"KPI_aGHG_PrFin1", "_", outdate,".csv")
+fname_out_AE_PrFin2 <- paste0(inddir,"KPI_aGHG_PrFin2", "_", outdate,".csv")
+fname_out_AE_PrEq1 <- paste0(inddir,"KPI_aGHG_PrEq1", "_", outdate,".csv")
+fname_out_AE_PrEq2 <- paste0(inddir,"KPI_aGHG_PrEq2", "_", outdate,".csv")
+fname_out_AE_FI1 <- paste0(inddir,"KPI_aGHG_FI1", "_", outdate,".csv")
+fname_out_AE_FI2 <- paste0(inddir,"KPI_aGHG_FI2", "_", outdate,".csv")
 
 ```
 
@@ -145,6 +145,9 @@ AE_Corp1 <- uS005_AbsEms_Corp(impactcard = ICCp,
                              scope = 1,
                              countrymap = lutC,
                              sectormap = lutS)
+write.csv2(AE_Corp1, file = fname_out_AE_Corp1, row.names = FALSE,
+           fileEncoding = "UTF-8")
+
 head(AE_Corp1, 10)
 ```
 
@@ -162,6 +165,9 @@ AE_Corp2 <- uS005_AbsEms_Corp(impactcard = ICCp,
                              scope = 2,
                              countrymap = lutC,
                              sectormap = lutS)
+write.csv2(AE_Corp2, file = fname_out_AE_Corp2, row.names = FALSE,
+           fileEncoding = "UTF-8")
+
 table(AE_Corp2$method)
 ```
 
@@ -184,6 +190,10 @@ AE_PrFin1 <- uS006_AbsEms_PrFin(impactcard = ICPF,
                              scope = 1,
                              countrymap = lutC,
                              sectormap = lutS)
+
+write.csv2(AE_PrFin1, file = fname_out_AE_PrFin1, row.names = FALSE,
+           fileEncoding = "UTF-8")
+
 hist(AE_PrFin1$abs_ems, main = "Histogram of Emissions",
      xlab = "Absolute emissions")
 ```
@@ -202,6 +212,10 @@ AE_PrFin2 <- uS006_AbsEms_PrFin(impactcard = ICPF,
                              scope = 2,
                              countrymap = lutC,
                              sectormap = lutS)
+
+write.csv2(AE_PrFin2, file = fname_out_AE_PrFin2, row.names = FALSE,
+           fileEncoding = "UTF-8")
+
 sum(AE_PrFin2$abs_ems, na.rm = TRUE)
 ```
 ### Private Equity Funds (scope 1)

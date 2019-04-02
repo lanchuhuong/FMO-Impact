@@ -28,19 +28,33 @@
 uS007_AbsEms_PrEq <- function(customers, ecfactors, pkfactors,
                                sizes, sectors, costPK_msme,
                                costPK_corp, sectormap) {
+
   require(tidyverse)
   ## 1 - Read in parameters -------------------------------------------------
   custG <- customers
-  PEF_ConsECfctrs <- ecfactors
-  PEF_ConsPKfctrs <- pkfactors
-  PEF_ConsSize <- sizes
-  PEF_ConsSctrs <- sectors
-  # PEF_ConsSize <- PEFConsSize
-  # PEF_ConsSctrs <- PEFConsSctrs
-  # PEF_ConsECfctrs <- PEF_ConsEC1fctrs
-  # PEF_ConsPKfctrs <- PEF_ConsPKfctrs
-  lutICS <- sectormap
-  
+  local <- FALSE
+  if(!local) {
+    PEF_ConsECfctrs <- ecfactors
+    PEF_ConsPKfctrs <- pkfactors
+    PEF_ConsSize <- sizes
+    PEF_ConsSctrs <- sectors
+    lutICS <- sectormap
+  } 
+  if(local) {
+    PEF_ConsEC1fctrs <- read.csv2(fname_in_PEFConsEC1fctrs,
+                          stringsAsFactors = FALSE, fileEncoding = "UTF-8")
+    PEF_ConsPKfctrs <- read.csv2(fname_in_PEFConsPKfctrs,
+                         stringsAsFactors = FALSE, fileEncoding = "UTF-8")
+    PEF_ConsSize <- read.csv2(fname_in_PEFConsSize,
+                      stringsAsFactors = FALSE, fileEncoding = "UTF-8")
+    PEF_ConsSctrs <- read.csv2(fname_in_PEFConsSctrs,
+                       stringsAsFactors = FALSE, fileEncoding = "UTF-8")
+    costPK_corp <- 0.73
+    costPK_msme <- 1.2
+  }
+
+
+    
   ## 2 - prepare data frame PEFConsSctrs & GHG_sectors ---------------------
   PEFConsSctrs$sector <- gsub("_", " ", PEFConsSctrs$sector)
   PEFConsSctrs <- select(PEFConsSctrs, -status)
