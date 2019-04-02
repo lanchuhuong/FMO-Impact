@@ -25,7 +25,9 @@ uS002_PE_ConsolidateFactors <- function(invperc, factors) {
   ## 1 - Read in parameters ----------------------------------------------
   IP <- invperc
   CF <- factors
-
+  IP <- PEFInvPct
+  CF <- EcEF1
+  
   ## 2 - Read in GHG-countries -------------------------------------------
   lut <- read.csv2("datalake/luts/Map_CntrReg_2019-03-31.csv",
                    stringsAsFactors = FALSE,
@@ -63,6 +65,7 @@ uS002_PE_ConsolidateFactors <- function(invperc, factors) {
   rm(IP)
   IPcpl <- select(IPcpl, -combi, -status)
   IPcpl <- spread(IPcpl, key = GHG_country, value = inv_percentage)
+  IPcpl <- IPcpl[,c(1:18,20,19,21:24)]
   
   ## 3 - Check matrix multiplication (rows1 = cols2) --------------------------
   C1 <- colnames(IPcpl)
