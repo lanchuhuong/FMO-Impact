@@ -1,0 +1,198 @@
+---
+title: "Prototype KPI-script: Consolisate Private Equity Funds"
+author: "Gerrit Versteeg"
+date: "March 31th, 2019"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Absolute GHG Accounting
+## In short
+This KPI-script consolidates investments in Private Equity Funds for each customer.
+
+## Overview steps in script
+
+Step 1. 
+Step 2.
+
+# Data Processing
+## Setting up the environment
+
+***
+IN/OUTPUT
+
+| In/Out | Filename   |  Size | Description |
+|:------|:------------------|----:|:------------------------------|
+| Input | CustFac_General.csv | 247/18 | |
+| Input | IC_Corporate.csv | 48/7 | |
+| Input | IC_ProjFin.csv | 59/6 | |
+| Input | IC_FinInst.csv | 101/23 | |
+| Input | IC_PrivEq.csv | 39/43 | |
+| Input | PEF_Investments.csv | 117/5 | |
+| Input | PEF_RegionPerc.csv | 18/3 | |
+| Input | Fctr_EcEmis1.csv | 23/19 | |
+| Input | Fctr_EcEmis2.csv | 23/19 | |
+| Input | Fctr_CapInt.csv | 23/19 | |
+| Input | Fctr_CBbrkdwn.csv | 23/17 | |
+| Input | Fctr_Out2Elec.csv | 23/17 | |
+| LUT | MAP_CntrReg.csv | 87/2 | |
+| LUT | MAP_SctrMdl.csv | 21/2 | |
+| LUT | MAP_ICSctrMdl.csv | 18/2 | |
+| Output | PEF_InvPct | 18/2 | |
+| Output | PEF_ConsPKF | 18/2 | |
+| Output | PEF_ConsECF1 | 18/2 | |
+| Output | PEF_ConsECF2 | 18/2 | |
+| Output | PEF_ConsSize | 18/2 | |
+| Output | PEF_ConsSctrs | 18/2 | |
+
+***
+
+```{r setup_env,ECHO = TRUE}
+library("tidyverse", warn.conflicts=FALSE)      ## load tidyverse silently
+
+## Source micro-services
+## 1. contains all microservices for first KPI
+source("microservices/uS001_PE_InvPct.R")
+source("microservices/uS002_PE_ConsolidateFactors.R")
+source("microservices/uS003_PE_ConsolidateSectors.R")
+source("microservices/uS004_PE_ConsolidateSize.R")
+source("microservices/uS005_AbsEms_Corp.R")
+source("microservices/uS006_AbsEms_PrFin.R")
+
+## Setup locations
+rawdir <- "datalake/raw_data/"
+lutdir <- "datalake/luts/"
+clndir <- "datalake/clean_data/"
+valdir <- "datalake/valid_data/"
+inddir <- "datalake/indicators/"
+dptdir <- "datalake/data_points/"
+laydir <- "datalake/infoproducts/GIS_layers/"
+qlkdir <- "datalake/infoproducts/Qlik_cubes/"
+sopdir <- "datalake/infoproducts/sopact_sheets/"
+
+## Setup parameters
+version <- ""
+indate = "2019-03-31"
+lutdate = "2019-03-31"
+outdate = "2019-03-31"
+
+## Setup filenames
+fname_in_custG <- paste0(clndir,"CustFac_General", "_", outdate,".csv")
+fname_in_ICPE <- paste0(clndir,"IC_PrivEq", "_", outdate,".csv")
+fname_in_PEFInv <- paste0(clndir,"PEF_Investments", "_", outdate,".csv")
+fname_in_PEFReg <- paste0(clndir,"PEF_RegionPerc", "_", outdate,".csv")
+fname_in_EcEF1 <- paste0(clndir,"Fctr_EcEmis1", "_", outdate,".csv")
+fname_in_EcEF2 <- paste0(clndir,"Fctr_EcEmis2", "_", outdate,".csv")
+fname_in_CpIF <- paste0(clndir,"Fctr_CapInt", "_", outdate,".csv")
+fname_out_PEFInvPct <- paste0(dptdir,"PEF_InvPct", "_", outdate,".csv")
+fname_out_PEFConsPKfctrs <- paste0(dptdir,"PEF_ConsPKF", "_", outdate,".csv")
+fname_out_PEFConsEC1fctrs <- paste0(dptdir,"PEF_ConsECF1", "_", outdate,".csv")
+fname_out_PEFConsEC2fctrs <- paste0(dptdir,"PEF_ConsECF2", "_", outdate,".csv")
+fname_out_PEFConsSize <- paste0(dptdir,"PEF_ConsSize", "_", outdate,".csv")
+fname_out_PEFConsSctrs <- paste0(dptdir,"PEF_ConsSctrs", "_", outdate,".csv")
+
+```
+
+
+## General customers
+### Listing the customer types
+
+```{r 1.PEF-InvPct, ECHO = TRUE}
+custG <- read.csv2(fname_in_custG, stringsAsFactors = FALSE,
+                    fileEncoding = "UTF-8")
+table(custG$IC_type)
+```
+
+
+## Prive Equity Fund Preparation
+
+### Determining Investment Percentages per Country
+
+Calculate investment percentages per Private Equity Fund for each customer seperated into countries.
+
+```{r 1.PEF-InvPct, ECHO = TRUE}
+PEFInv <- read.csv2(fname_in_PEFInv, stringsAsFactors = FALSE,
+                    fileEncoding = "UTF-8")
+PEFReg <- read.csv2(fname_in_PEFReg, stringsAsFactors = FALSE,
+                    fileEncoding = "UTF-8")
+PEFInvPct <- uS001_PE_InvPct(investments = PEFInv,
+                             contracted = PEFReg)
+write.csv2(PEFInvPct, file = fname_out_PEFInvPct, row.names = FALSE,
+           fileEncoding = "UTF-8")
+head(PEFInvPct, 5)
+```
+
+### Consolidating PK-Factors (Cap.Intensity)
+Consolidate Capital Intensity Factors (GHG-country/sector) per customer
+
+```{r 2.PEF-ConsPKFct, ECHO = TRUE}
+CpIF <- read.csv2(fname_in_CpIF, stringsAsFactors = FALSE,
+                    fileEncoding = "UTF-8")
+PEF_ConsPKfctrs <- uS002_PE_ConsolidateFactors(invperc = PEFInvPct,
+                             factors = CpIF)
+write.csv2(PEF_ConsPKfctrs, file = fname_out_PEFConsPKfctrs, row.names = FALSE,
+           fileEncoding = "UTF-8")
+head(PEF_ConsPKfctrs, 5)
+```
+
+### Consolidating EcEF - scope 2
+Consolidate emission fators (scope 2) per customer
+
+```{r 3.PEF-ConsEc2Fct, ECHO = TRUE}
+EcEF2 <- read.csv2(fname_in_EcEF2, stringsAsFactors = FALSE,
+                    fileEncoding = "UTF-8")
+PEF_ConsEC2fctrs <- uS002_PE_ConsolidateFactors(invperc = PEFInvPct,
+                             factors = EcEF2)
+write.csv2(PEF_ConsEC2fctrs, file = fname_out_PEFConsEC2fctrs, 
+           row.names = FALSE, fileEncoding = "UTF-8")
+head(PEF_ConsEC2fctrs, 5)
+```
+
+### Consolidating EcEF - scope 1
+Consolidate emission fators (scope 1) per customer
+
+```{r 4.PEF-ConsEc1Fct, ECHO = TRUE}
+EcEF1 <- read.csv2(fname_in_EcEF1, stringsAsFactors = FALSE,
+                    fileEncoding = "UTF-8")
+PEF_ConsEC1fctrs <- uS002_PE_ConsolidateFactors(invperc = PEFInvPct,
+                             factors = EcEF1)
+write.csv2(PEF_ConsEC1fctrs, file = fname_out_PEFConsEC1fctrs, 
+           row.names = FALSE, fileEncoding = "UTF-8")
+head(PEF_ConsEC1fctrs, 5)
+```
+
+### Consolidate IC-Sectors per PEF-customer
+Calculate the PEF-investments (or contracted if not present) for each PEF-customer for each Impact Card Sector
+
+```{r 5.PEF-ConsSect, ECHO = TRUE}
+ICPE <- read.csv2(fname_in_ICPE, stringsAsFactors = FALSE,
+                    fileEncoding = "UTF-8")
+PEFInv <- read.csv2(fname_in_PEFInv, stringsAsFactors = FALSE,
+                    fileEncoding = "UTF-8")
+PEFConsSctrs <- uS003_PE_ConsolidateSectors(investments = PEFInv,
+                             contracted = ICPE)
+write.csv2(PEF_ConsSctrs, file = fname_out_PEFConsSctrs, 
+           row.names = FALSE, fileEncoding = "UTF-8")
+head(PEFConsSctrs, 5)
+```
+
+### Consolidate investments towards size per PEF-customer
+Calculate the PEF-investments (or contracted if not present) for each PEF-customer for each size (SME versus Corporate)
+
+```{r 6.PEF-ConsSect, ECHO = TRUE}
+ICPE <- read.csv2(fname_in_ICPE, stringsAsFactors = FALSE,
+                    fileEncoding = "UTF-8")
+PEFInv <- read.csv2(fname_in_PEFInv, stringsAsFactors = FALSE,
+                    fileEncoding = "UTF-8")
+
+PEFConsSize <- uS004_PE_ConsolidateSize(investments = PEFInv,
+                             contracted = ICPE)
+
+write.csv2(PEF_ConsSize, file = fname_out_PEFConsSize, 
+           row.names = FALSE, fileEncoding = "UTF-8")
+head(PEFConsSize, 5)
+```
+
