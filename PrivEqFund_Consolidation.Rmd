@@ -63,8 +63,6 @@ source("microservices/uS001_PE_InvPct.R")
 source("microservices/uS002_PE_ConsolidateFactors.R")
 source("microservices/uS003_PE_ConsolidateSectors.R")
 source("microservices/uS004_PE_ConsolidateSize.R")
-source("microservices/uS005_AbsEms_Corp.R")
-source("microservices/uS006_AbsEms_PrFin.R")
 
 ## Setup locations
 rawdir <- "datalake/raw_data/"

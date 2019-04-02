@@ -10,11 +10,21 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 # Absolute GHG Accounting
-This KPI-script calculates
+## In short
+This script calculates the absolute greenhouse gas emission for all customers of FMO. The GHG-accounting model is based on the FMO Impact Model methodology as described in general in: "FMO Impact Model - methodology document 25 March 2019.pdf".
+
+The calculations used are described in more detail in FMO's technical paper, version 2, October 2018 ("Absolute GHG Accounting Approach.pdf"")
 
 ## Four models
+Four calculation models are used, sequenced below in prefered usage:
+
+* model 1. use verified, actual GHG emissions (ISO 14064)
+* model 2. use primary physical activity data to estimate GHG emission
+* model 3. use primary economic activity data to estimate GHG emission
+* model 2. use portfolio data to estimate GHG emission
 
 ## Overview steps in script
+
 
 # Data Processing
 ## Setting up the environment
@@ -42,17 +52,14 @@ IN/OUTPUT
 
 ***
 
-```{r setup_env,ECHO = TRUE}
+```{r setup_env, echo=FALSE, warning=FALSE}
 library("tidyverse", warn.conflicts=FALSE)      ## load tidyverse silently
 
 ## Source micro-services
 ## 1. contains all microservices for first KPI
-source("microservices/uS001_PE_InvPct.R")
-source("microservices/uS002_PE_ConsolidateFactors.R")
-source("microservices/uS003_PE_ConsolidateSectors.R")
-source("microservices/uS004_PE_ConsolidateSize.R")
 source("microservices/uS005_AbsEms_Corp.R")
 source("microservices/uS006_AbsEms_PrFin.R")
+source("microservices/uS007_AbsEms_PrEq.R")
 
 ## Setup locations
 rawdir <- "datalake/raw_data/"
@@ -77,17 +84,29 @@ fname_in_ICCp <- paste0(clndir,"IC_Corporate", "_", outdate,".csv")
 fname_in_ICPF <- paste0(clndir,"IC_ProjFin", "_", outdate,".csv")
 fname_in_ICFI <- paste0(clndir,"IC_FinInst", "_", outdate,".csv")
 fname_in_ICPE <- paste0(clndir,"IC_PrivEq", "_", outdate,".csv")
-fname_in_PEFInv <- paste0(clndir,"PEF_Investments", "_", outdate,".csv")
-fname_in_PEFReg <- paste0(clndir,"PEF_RegionPerc", "_", outdate,".csv")
 fname_in_EcEF1 <- paste0(clndir,"Fctr_EcEmis1", "_", outdate,".csv")
 fname_in_EcEF2 <- paste0(clndir,"Fctr_EcEmis2", "_", outdate,".csv")
 fname_in_CpIF <- paste0(clndir,"Fctr_CapInt", "_", outdate,".csv")
 fname_in_CBBD <- paste0(clndir,"Fctr_CBbrkdwn", "_", outdate,".csv")
-fname_in_OutElc <- paste0(clndir,"Fctr_Out2Elec", "_", outdate,".csv")
+
 fname_in_lutC <- paste0(lutdir,"Map_CntrReg", "_", outdate,".csv")
 fname_in_lutS <- paste0(lutdir,"Map_SctrMdl", "_", outdate,".csv")
 fname_in_lutICS <- paste0(lutdir,"Map_ICSctrMdl", "_", outdate,".csv")
-fname_out <- paste0(inddir,"KPI_AbsGHGAcc", "_", outdate,".csv")
+
+fname_in_PEFConsPKfctrs <- paste0(dptdir,"PEF_ConsPKF", "_", outdate,".csv")
+fname_in_PEFConsEC1fctrs <- paste0(dptdir,"PEF_ConsECF1", "_", outdate,".csv")
+fname_in_PEFConsEC2fctrs <- paste0(dptdir,"PEF_ConsECF2", "_", outdate,".csv")
+fname_in_PEFConsSize <- paste0(dptdir,"PEF_ConsSize", "_", outdate,".csv")
+fname_in_PEFConsSctrs <- paste0(dptdir,"PEF_ConsSctrs", "_", outdate,".csv")
+
+fname_out_AE_Corp1 <- paste0(dptdir,"KPI_aGHG_Corp1", "_", outdate,".csv")
+fname_out_AE_Corp2 <- paste0(dptdir,"KPI_aGHG_Corp2", "_", outdate,".csv")
+fname_out_AE_PrFin1 <- paste0(dptdir,"KPI_aGHG_PrFin1", "_", outdate,".csv")
+fname_out_AE_PrFin2 <- paste0(dptdir,"KPI_aGHG_PrFin2", "_", outdate,".csv")
+fname_out_AE_PrEq1 <- paste0(dptdir,"KPI_aGHG_PrEq1", "_", outdate,".csv")
+fname_out_AE_PrEq2 <- paste0(dptdir,"KPI_aGHG_PrEq2", "_", outdate,".csv")
+fname_out_AE_FI1 <- paste0(dptdir,"KPI_aGHG_FI1", "_", outdate,".csv")
+fname_out_AE_FI2 <- paste0(dptdir,"KPI_aGHG_FI2", "_", outdate,".csv")
 
 ```
 
@@ -100,78 +119,6 @@ custG <- read.csv2(fname_in_custG, stringsAsFactors = FALSE,
                     fileEncoding = "UTF-8")
 table(custG$IC_type)
 ```
-
-
-## Prive Equity Fund Preparation
-### Determining Investment Percentages per Country
-Calculate investment percentage per PEF-customer per country
-
-```{r 1.PEF-InvPct, ECHO = TRUE}
-PEFInv <- read.csv2(fname_in_PEFInv, stringsAsFactors = FALSE,
-                    fileEncoding = "UTF-8")
-PEFReg <- read.csv2(fname_in_PEFReg, stringsAsFactors = FALSE,
-                    fileEncoding = "UTF-8")
-PEFInvPct <- uS001_PE_InvPct(investments = PEFInv,
-                             contracted = PEFReg)
-head(PEFInvPct, 5)
-```
-
-### Consolidating PK-Factors (Cap.Intensity)
-Consolidate Capital Intensity Factors (GHG-country/sector) per customer
-
-```{r 2.PEF-ConsPKFct, ECHO = TRUE}
-CpIF <- read.csv2(fname_in_CpIF, stringsAsFactors = FALSE,
-                    fileEncoding = "UTF-8")
-PEF_ConsPKfctrs <- uS002_PE_ConsolidateFactors(invperc = PEFInvPct,
-                             factors = CpIF)
-head(PEF_ConsPKfctrs, 5)
-```
-### Consolidating EcEF - scope 2
-Consolidate emission fators (scope 2) per customer
-
-```{r 3.PEF-ConsEc2Fct, ECHO = TRUE}
-EcEF2 <- read.csv2(fname_in_EcEF2, stringsAsFactors = FALSE,
-                    fileEncoding = "UTF-8")
-PEF_ConsEC2fctrs <- uS002_PE_ConsolidateFactors(invperc = PEFInvPct,
-                             factors = EcEF2)
-head(PEF_ConsEC2fctrs, 5)
-```
-### Consolidating EcEF - scope 1
-Consolidate emission fators (scope 1) per customer
-
-```{r 4.PEF-ConsEc1Fct, ECHO = TRUE}
-EcEF1 <- read.csv2(fname_in_EcEF1, stringsAsFactors = FALSE,
-                    fileEncoding = "UTF-8")
-PEF_ConsEC1fctrs <- uS002_PE_ConsolidateFactors(invperc = PEFInvPct,
-                             factors = EcEF1)
-head(PEF_ConsEC1fctrs, 5)
-```
-### Consolidate IC-Sectors per PEF-customer
-Calculate the PEF-investments (or contracted if not present) for each PEF-customer for each Impact Card Sector
-
-```{r 5.PEF-ConsSect, ECHO = TRUE}
-ICPE <- read.csv2(fname_in_ICPE, stringsAsFactors = FALSE,
-                    fileEncoding = "UTF-8")
-PEFInv <- read.csv2(fname_in_PEFInv, stringsAsFactors = FALSE,
-                    fileEncoding = "UTF-8")
-PEFConsSctrs <- uS003_PE_ConsolidateSectors(investments = PEFInv,
-                             contracted = ICPE)
-head(PEFConsSctrs, 5)
-```
-
-### Consolidate investments towards size per PEF-customer
-Calculate the PEF-investments (or contracted if not present) for each PEF-customer for each size (SME versus Corporate)
-
-```{r 6.PEF-ConsSect, ECHO = TRUE}
-ICPE <- read.csv2(fname_in_ICPE, stringsAsFactors = FALSE,
-                    fileEncoding = "UTF-8")
-PEFInv <- read.csv2(fname_in_PEFInv, stringsAsFactors = FALSE,
-                    fileEncoding = "UTF-8")
-PEFConsSize <- uS004_PE_ConsolidateSize(investments = PEFInv,
-                             contracted = ICPE)
-head(PEFConsSize, 5)
-```
-
 
 ## Calculate Absolute Emissions
 
@@ -198,7 +145,7 @@ AE_Corp1 <- uS005_AbsEms_Corp(impactcard = ICCp,
                              scope = 1,
                              countrymap = lutC,
                              sectormap = lutS)
-head(AE_Corp1, 5)
+head(AE_Corp1, 10)
 ```
 
 ### Corporates (scope 2)
@@ -206,16 +153,7 @@ head(AE_Corp1, 5)
 Calculate absolute emissions (Scope 2) for each Corporate customer.
 
 ```{r 8.AbsEms-Corp2, ECHO = TRUE}
-custG <- read.csv2(fname_in_custG, stringsAsFactors = FALSE,
-                    fileEncoding = "UTF-8")
-custG <- custG[custG$IC_type == "corporate",]
-ICCp <- read.csv2(fname_in_ICCp, stringsAsFactors = FALSE,
-                    fileEncoding = "UTF-8")
 EcEF <- read.csv2(fname_in_EcEF2, stringsAsFactors = FALSE,
-                    fileEncoding = "UTF-8")
-lutC <- read.csv2(fname_in_lutC, stringsAsFactors = FALSE,
-                    fileEncoding = "UTF-8")
-lutS <- read.csv2(fname_in_lutS, stringsAsFactors = FALSE,
                     fileEncoding = "UTF-8")
 
 AE_Corp2 <- uS005_AbsEms_Corp(impactcard = ICCp,
@@ -224,7 +162,7 @@ AE_Corp2 <- uS005_AbsEms_Corp(impactcard = ICCp,
                              scope = 2,
                              countrymap = lutC,
                              sectormap = lutS)
-head(AE_Corp2, 5)
+table(AE_Corp2$method)
 ```
 
 ### Project-Finances (scope 1)
@@ -239,10 +177,6 @@ ICPF <- read.csv2(fname_in_ICPF, stringsAsFactors = FALSE,
                     fileEncoding = "UTF-8")
 EcEF <- read.csv2(fname_in_EcEF1, stringsAsFactors = FALSE,
                     fileEncoding = "UTF-8")
-lutC <- read.csv2(fname_in_lutC, stringsAsFactors = FALSE,
-                    fileEncoding = "UTF-8")
-lutS <- read.csv2(fname_in_lutS, stringsAsFactors = FALSE,
-                    fileEncoding = "UTF-8")
 
 AE_PrFin1 <- uS006_AbsEms_PrFin(impactcard = ICPF,
                              customers = custG,
@@ -250,7 +184,8 @@ AE_PrFin1 <- uS006_AbsEms_PrFin(impactcard = ICPF,
                              scope = 1,
                              countrymap = lutC,
                              sectormap = lutS)
-head(AE_PrFin1, 5)
+hist(AE_PrFin1$abs_ems, main = "Histogram of Emissions",
+     xlab = "Absolute emissions")
 ```
 
 ### Project-Finances (scope 2)
@@ -258,16 +193,7 @@ head(AE_PrFin1, 5)
 Calculate absolute emissions (Scope 2) for each project finance customer.
 
 ```{r 10.AbsEms-PF2, ECHO = TRUE}
-custG <- read.csv2(fname_in_custG, stringsAsFactors = FALSE,
-                    fileEncoding = "UTF-8")
-ICPF <- read.csv2(fname_in_ICPF, stringsAsFactors = FALSE,
-                    fileEncoding = "UTF-8")
-custG <- custG[custG$IC_type == "project finance",]
 EcEF <- read.csv2(fname_in_EcEF2, stringsAsFactors = FALSE,
-                    fileEncoding = "UTF-8")
-lutC <- read.csv2(fname_in_lutC, stringsAsFactors = FALSE,
-                    fileEncoding = "UTF-8")
-lutS <- read.csv2(fname_in_lutS, stringsAsFactors = FALSE,
                     fileEncoding = "UTF-8")
 
 AE_PrFin2 <- uS006_AbsEms_PrFin(impactcard = ICPF,
@@ -276,5 +202,34 @@ AE_PrFin2 <- uS006_AbsEms_PrFin(impactcard = ICPF,
                              scope = 2,
                              countrymap = lutC,
                              sectormap = lutS)
-head(AE_PrFin2, 5)
+sum(AE_PrFin2$abs_ems, na.rm = TRUE)
+```
+### Private Equity Funds (scope 1)
+
+Calculate absolute emissions (scope 1) for each Private Equity Fund customer.
+
+```{r 11.AbsEms-PE1, echo=FALSE}
+# custG <- read.csv2(fname_in_custG, stringsAsFactors = FALSE,
+#                     fileEncoding = "UTF-8")
+# custG <- custG[custG$IC_type == "Private Equity Fund",]
+# lutICS <- read.csv2(fname_in_lutICS, stringsAsFactors = FALSE,
+#                     fileEncoding = "UTF-8")
+# PEF_ConsEC1fctrs <- read.csv2(fname_in_PEFConsEC1fctrs, 
+#                             stringsAsFactors = FALSE, fileEncoding = "UTF-8")
+# PEF_ConsPKfctrs <- read.csv2(fname_in_PEFConsPKfctrs, 
+#                             stringsAsFactors = FALSE, fileEncoding = "UTF-8")
+# PEF_ConsSize <- read.csv2(fname_in_PEFConsSize, 
+#                             stringsAsFactors = FALSE, fileEncoding = "UTF-8")
+# PEF_ConsSctrs <- read.csv2(fname_in_PEFConsSctrs, 
+#                             stringsAsFactors = FALSE, fileEncoding = "UTF-8")
+# 
+# AE_PrEq1 <- uS007_AbsEms_PrEq(customers = custG,
+#                              ecfactors = PEF_ConsEC1fctrs,
+#                              pkfactors = PEF_ConsPKfctrs,
+#                              sizes = PEF_ConsSize,
+#                              sectors = PEF_ConsSctrs,
+#                              costPK_msme = 1.2,
+#                              costPK_corp = 0.73,
+#                              sectormap = lutICS)
+# head(AE_PrEq1, 5)
 ```
