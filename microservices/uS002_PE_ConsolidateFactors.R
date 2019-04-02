@@ -25,9 +25,7 @@ uS002_PE_ConsolidateFactors <- function(invperc, factors) {
   ## 1 - Read in parameters ----------------------------------------------
   IP <- invperc
   CF <- factors
-  IP <- PEFInvPct
-  CF <- EcEF1
-  
+
   ## 2 - Read in GHG-countries -------------------------------------------
   lut <- read.csv2("datalake/luts/Map_CntrReg_2019-03-31.csv",
                    stringsAsFactors = FALSE,
