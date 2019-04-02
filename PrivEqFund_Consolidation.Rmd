@@ -1,5 +1,5 @@
 ---
-title: "Prototype KPI-script: Consolisate Private Equity Funds"
+title: "Prototype KPI-script: Consolidate Private Equity Funds"
 author: "Gerrit Versteeg"
 date: "March 31th, 2019"
 output: pdf_document
@@ -15,8 +15,12 @@ This KPI-script consolidates investments in Private Equity Funds for each custom
 
 ## Overview steps in script
 
-Step 1. 
-Step 2.
+  1. Determine investment percentages per country
+  2. Consolidate investment percentage to PK-factors (Cap.Int)
+  3. Consolidate investment percentage to economic factors scope 2
+  3. Consolidate investment percentage to economic factors scope 1
+  4. Consolidate investment percentage towards size (MSME, Corp)
+  5. Consolidate investment percentage towards impact card sector
 
 # Data Processing
 ## Setting up the environment
@@ -100,7 +104,7 @@ fname_out_PEFConsSctrs <- paste0(dptdir,"PEF_ConsSctrs", "_", outdate,".csv")
 ## General customers
 ### Listing the customer types
 
-```{r 1.PEF-InvPct, ECHO = TRUE}
+```{r 1.PEF-CustList, ECHO = TRUE}
 custG <- read.csv2(fname_in_custG, stringsAsFactors = FALSE,
                     fileEncoding = "UTF-8")
 table(custG$IC_type)
@@ -174,7 +178,7 @@ PEFInv <- read.csv2(fname_in_PEFInv, stringsAsFactors = FALSE,
                     fileEncoding = "UTF-8")
 PEFConsSctrs <- uS003_PE_ConsolidateSectors(investments = PEFInv,
                              contracted = ICPE)
-write.csv2(PEF_ConsSctrs, file = fname_out_PEFConsSctrs, 
+write.csv2(PEFConsSctrs, file = fname_out_PEFConsSctrs, 
            row.names = FALSE, fileEncoding = "UTF-8")
 head(PEFConsSctrs, 5)
 ```
@@ -191,7 +195,7 @@ PEFInv <- read.csv2(fname_in_PEFInv, stringsAsFactors = FALSE,
 PEFConsSize <- uS004_PE_ConsolidateSize(investments = PEFInv,
                              contracted = ICPE)
 
-write.csv2(PEF_ConsSize, file = fname_out_PEFConsSize, 
+write.csv2(PEFConsSize, file = fname_out_PEFConsSize, 
            row.names = FALSE, fileEncoding = "UTF-8")
 head(PEFConsSize, 5)
 ```
