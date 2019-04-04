@@ -99,5 +99,6 @@ uS001_PE_InvPct <- function(investments, contracted) {
 
   ## 10 - Generate output (investment-percentages per customer/country --------
   Out <- arrange(DF_Out, Customer_ID, GHG_country)
+  PEFInvPct <- Out
   return(Out)
 }
