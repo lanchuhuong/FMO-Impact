@@ -26,7 +26,7 @@
 uS001_PE_InvPct <- function(investments, contracted) {
   require(tidyverse)
   ## 1 - Read in parameters: PEFInv, PEFREg -----------------------------------
-  test <- TRUE
+  test <- FALSE
   if(!test) {
     PEFInv <- investments
     PEFReg <- contracted
