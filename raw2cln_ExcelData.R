@@ -89,6 +89,7 @@ fname_out_Map_ICSctrMdl <- paste0(lutdir,"Map_ICSctrMdl", "_", outdate,".csv")
 raw <- read_xlsx(fname_in_raw, sheet = "Input_Data_FMO",
                  skip = 6)
 ## 2 - rename column-names for easy processing
+raw <- raw[,-c(55:59)]
 hdrs <- colnames(raw)
 hdrs <- gsub("-", "_", hdrs)
 hdrs <- gsub(" ", "_", hdrs)
@@ -107,6 +108,7 @@ raw <- separate(raw, GNic_Impact_Card_Type,
                  sep = pattern, fill = "left")
 raw$GNic_Type_fin <- sub(" corporate", "corporate", raw$GNic_Type_fin)
 raw$GNic_Type_fin <- sub(" project finance", "project finance", raw$GNic_Type_fin)
+raw$GNic_Type_fin <- tolower(raw$GNic_Type_fin)
 
 ## 4 - classify variables
 raw$Department <- as.factor(raw$Department)
@@ -135,8 +137,7 @@ table(raw$GNic_Type_fin)
 ## generate corporate impact card
 rawsel <- filter(raw, as.character(GNic_Type_fin) == "corporate")
 ICCp <- rawsel %>%
-  select(starts_with("CPic_"))
-ICCp <- cbind(rawsel[,1],ICCp)
+  select(Customer_ID, starts_with("CPic_"))
 colnames(ICCp) <- sub("CPic_", "", colnames(ICCp))
 write.csv2(ICCp, fname_out_ICCp, row.names = FALSE,
            fileEncoding = "UTF-8")
@@ -144,19 +145,18 @@ write.csv2(ICCp, fname_out_ICCp, row.names = FALSE,
 ## generate project finance impact card
 rawsel <- filter(raw, as.character(GNic_Type_fin) == "project finance")
 ICPF <- rawsel %>%
-  select(starts_with("PFic_"))
-ICPF <- cbind(rawsel[,1],ICPF)
+  select(Customer_ID, starts_with("PFic_"))
 colnames(ICPF) <- sub("PFic_", "", colnames(ICPF))
 write.csv2(ICPF, fname_out_ICPF, row.names = FALSE,
            fileEncoding = "UTF-8")
 
 ## generate financial institution impact card
-rawsel <- filter(raw, as.character(GNic_Type_fin) == "Financial Institution")
+rawsel <- filter(raw, as.character(GNic_Type_fin) == "financial institution")
 ICFI <- rawsel %>%
-  select(starts_with("FIic_")) %>%
+  select(Customer_ID, starts_with("FIic_")) %>%
   select(-FIic_Percentage_green_investment) ## already in custG 4 all customers
-ICFI <- cbind(rawsel[,1],ICFI)
 colnames(ICFI) <- sub("FIic_", "", colnames(ICFI))
+## reorder columns to coincide with IC_sectors
 write.csv2(ICFI, fname_out_ICFI, row.names = FALSE,
            fileEncoding = "UTF-8")
 rm(raw)
@@ -211,19 +211,16 @@ raw <- filter(raw, !is.na(Customer_ID))
 ## 6 - split file into private eq. impact card and PEF-investments
 
 ## generate private equity impact card (impact at contract)
-rawsel <- raw %>%
-  select(starts_with("PEc_"))
-ICPE <- cbind(raw[,1], rawsel)
+ICPE <- raw %>%
+  select(Customer_ID, starts_with("PEc_"))
 colnames(ICPE) <- sub("PEc_", "", colnames(ICPE))
-rawPEreg <- select(ICPE, starts_with("Region_"))
-rawPEreg <- cbind(ICPE[,1], rawPEreg)
+rawPEreg <- select(ICPE, Customer_ID, starts_with("Region_"))
 ICPE <- select(ICPE, -starts_with("Region_"))
 write.csv2(ICPE, fname_out_ICPE, row.names = FALSE,
            fileEncoding = "UTF-8")
 
-## generate private equity fund regions (impact at contract)
+## generate private equity fund region percentages (impact at contract)
 rawsel <- rawPEreg
-colnames(rawsel)[1] <- "Customer_ID"
 ix_regname <- c(2:11)
 ix_regpct <- c(12:21)
 k <- 1
@@ -250,8 +247,7 @@ rm(rawPEreg)
 
 ## generate private equity fund investments (impact at review)
 rawsel <- raw %>%
-  select(starts_with("PEr_"))
-rawsel <- cbind(raw[,1], rawsel)
+  select(Customer_ID, starts_with("PEr_"))
 colnames(rawsel) <- sub("PEr_", "", colnames(rawsel))
 ix_sector <- c(2:26)
 ix_amount <- c(27:51)
