@@ -113,15 +113,18 @@ table(custG$IC_type)
 
 ### Determining Investment Percentages per Country
 
-Calculate investment percentages per Private Equity Fund for each customer seperated into countries.
+Calculate investment percentages per Private Equity Fund for each customer seperated into GHG-countries.
 
 ```{r 1.PEF-InvPct, ECHO = TRUE}
 PEFInv <- read.csv2(fname_in_PEFInv, stringsAsFactors = FALSE,
                     fileEncoding = "UTF-8")
 PEFReg <- read.csv2(fname_in_PEFReg, stringsAsFactors = FALSE,
                     fileEncoding = "UTF-8")
+lutC <- read.csv2(fname_in_lutC, stringsAsFactors = FALSE,
+                   fileEncoding = "UTF-8")
 PEFInvPct <- uS001_PE_InvPct(investments = PEFInv,
-                             contracted = PEFReg)
+                             contracted = PEFReg,
+                             countrymap = lutC)
 write.csv2(PEFInvPct, file = fname_out_PEFInvPct, row.names = FALSE,
            fileEncoding = "UTF-8")
 head(PEFInvPct, 5)
@@ -133,11 +136,11 @@ Consolidate Capital Intensity Factors (GHG-country/sector) per customer
 ```{r 2.PEF-ConsPKFct, ECHO = TRUE}
 CpIF <- read.csv2(fname_in_CpIF, stringsAsFactors = FALSE,
                     fileEncoding = "UTF-8")
-PEF_ConsPKfctrs <- uS002_PE_ConsolidateFactors(invperc = PEFInvPct,
+PEFConsPKF <- uS002_PE_ConsolidateFactors(invperc = PEFInvPct,
                              factors = CpIF)
-write.csv2(PEF_ConsPKfctrs, file = fname_out_PEFConsPKfctrs, row.names = FALSE,
+write.csv2(PEFConsPKF, file = fname_out_PEFConsPKfctrs, row.names = FALSE,
            fileEncoding = "UTF-8")
-head(PEF_ConsPKfctrs, 5)
+head(PEFConsPKF, 5)
 ```
 
 ### Consolidating EcEF - scope 2
@@ -146,11 +149,11 @@ Consolidate emission fators (scope 2) per customer
 ```{r 3.PEF-ConsEc2Fct, ECHO = TRUE}
 EcEF2 <- read.csv2(fname_in_EcEF2, stringsAsFactors = FALSE,
                     fileEncoding = "UTF-8")
-PEF_ConsEC2fctrs <- uS002_PE_ConsolidateFactors(invperc = PEFInvPct,
+PEFConsECF2 <- uS002_PE_ConsolidateFactors(invperc = PEFInvPct,
                              factors = EcEF2)
-write.csv2(PEF_ConsEC2fctrs, file = fname_out_PEFConsEC2fctrs, 
+write.csv2(PEFConsECF2, file = fname_out_PEFConsEC2fctrs, 
            row.names = FALSE, fileEncoding = "UTF-8")
-head(PEF_ConsEC2fctrs, 5)
+head(PEFConsECF2, 5)
 ```
 
 ### Consolidating EcEF - scope 1
@@ -159,11 +162,11 @@ Consolidate emission fators (scope 1) per customer
 ```{r 4.PEF-ConsEc1Fct, ECHO = TRUE}
 EcEF1 <- read.csv2(fname_in_EcEF1, stringsAsFactors = FALSE,
                     fileEncoding = "UTF-8")
-PEF_ConsEC1fctrs <- uS002_PE_ConsolidateFactors(invperc = PEFInvPct,
+PEFConsECF1 <- uS002_PE_ConsolidateFactors(invperc = PEFInvPct,
                              factors = EcEF1)
-write.csv2(PEF_ConsEC1fctrs, file = fname_out_PEFConsEC1fctrs, 
+write.csv2(PEFConsECF1, file = fname_out_PEFConsEC1fctrs, 
            row.names = FALSE, fileEncoding = "UTF-8")
-head(PEF_ConsEC1fctrs, 5)
+head(PEFConsECF1, 5)
 ```
 
 ### Consolidate IC-Sectors per PEF-customer
