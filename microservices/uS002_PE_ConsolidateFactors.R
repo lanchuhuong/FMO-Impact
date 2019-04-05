@@ -19,26 +19,34 @@
 ##
 ## LOGIC
 
-uS002_PE_ConsolidateFactors <- function(invperc, factors) {
+uS002_PE_ConsolidateFactors <- function(invperc, factors, countrymap) {
   require(tidyverse)
   require(stringr)
   ## 1 - Read in parameters ----------------------------------------------
-  IP <- invperc
-  CF <- factors
+  test <- FALSE
+  if(!test) {
+    IP <- invperc
+    CF <- factors
+    lutC <- countrymap
+  } 
+  if(test) {
+    IP <- read.csv2(fname_in_PEFInvPct, stringsAsFactors = FALSE, 
+                      fileEncoding = "UTF-8")
+    IP <- PEFInvPct
+    CF <- read.csv2(fname_in_CpIF, stringsAsFactors = FALSE,
+                      fileEncoding = "UTF-8")
+    lutC <- read.csv2(fname_in_lutC, stringsAsFactors = FALSE,
+                      fileEncoding = "UTF-8")
+  }
 
-  ## 2 - Read in GHG-countries -------------------------------------------
-  lut <- read.csv2("datalake/luts/Map_CntrReg_2019-03-31.csv",
-                   stringsAsFactors = FALSE,
-                   fileEncoding = "UTF-8")
-
-  ## 2 - setup complete PEFInvPct dataframe ------------------------------
-  cntr <- str_sort(unique(lut$Model_Region))
+  ## 2 - complete the PEFInvPct dataframe with NA's ----------------------
+  cntr <- str_sort(unique(lutC$Model_Region))
   cntr <- cntr[c(1:17,19,18,20:23)]
   cust <- unique(IP$Customer_ID)
   IPcpl <- data.frame(Customer_ID = character(0),
                    GHG_country = character(0),
-                   status = character(0),
                    inv_percentage = numeric(0),
+                   status = character(0),
                    stringsAsFactors = FALSE)
   r <- 1
   for (i in c(1:length(cust))) {
@@ -57,26 +65,20 @@ uS002_PE_ConsolidateFactors <- function(invperc, factors) {
   for (i in c(1:nrow(IPcpl))) {
     current <- IPcpl$combi[i]
     found <- current %in% IP$combi
-    IPcpl[i,4] <- ifelse(found, IP[IP$combi == current, 4], NA)
-    IPcpl[i,5] <- ifelse(found, IP[IP$combi == current, 5], 0)
+    IPcpl[i,4] <- ifelse(found, IP[IP$combi == current, 4], 0)
+    IPcpl[i,5] <- ifelse(found, IP[IP$combi == current, 5], NA)
   }
-  rm(IP)
   IPcpl <- select(IPcpl, -combi, -status)
   IPcpl <- spread(IPcpl, key = GHG_country, value = inv_percentage)
   IPcpl <- IPcpl[,c(1:18,20,19,21:24)]
   
   ## 3 - Check matrix multiplication (rows1 = cols2) --------------------------
-  C1 <- colnames(IPcpl)
-  C1 <- C1[-1]
-  C2 <- CF$GHG_country
-  Error <- identical(C1, C2)
+  Error <- !identical(colnames(IPcpl)[-1], CF$GHG_country)
   ## Throw error if not exactly the same
 
   ## 4 - Setup matrix (countries/sectors) -------------------------------------
-  IPcpl <- IPcpl[,-1]
-  CF <- CF[,-1]
-  Mtx1 <- as.matrix(IPcpl)
-  Mtx2 <- as.matrix(CF)
+  Mtx1 <- as.matrix(IPcpl[,-1])
+  Mtx2 <- as.matrix(CF[,-1])
   
   ## 5 - Multiply matrices and convert into data frame (cust/sectors) --------
   Mtx3 <- Mtx1 %*% Mtx2
@@ -88,5 +90,6 @@ uS002_PE_ConsolidateFactors <- function(invperc, factors) {
   Out <- Out[, Seq]
   
   ## 6 - Output data frame (cust/sectors) ------------------------------------
+  PEFConsPKF <- Out
   return(Out)
 }

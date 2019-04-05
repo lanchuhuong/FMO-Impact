@@ -23,16 +23,25 @@
 uS003_PE_ConsolidateSectors <- function(investments, contracted) {
   require(tidyverse)
   ## 1 - Read in parameters: investments, contracted --------------------------
-  PEFInv <- investments
-  ICPE <- contracted
-
-  ## 2 - calculate customer/country totals ------------------------------------
+  test <- FALSE
+  if(!test) {
+    PEFInv <- investments
+    ICPE <- contracted
+  } 
+  if(test) {
+    PEFInv <- read.csv2(fname_in_PEFInv,
+                            stringsAsFactors = FALSE, fileEncoding = "UTF-8")
+    ICPE <- read.csv2(fname_in_ICPE,
+                            stringsAsFactors = FALSE, fileEncoding = "UTF-8")
+  }
+  
+  ## 2 - calculate customer totals --------------------------------------------
   PEFInvCust <- PEFInv %>%
     group_by(Customer_ID) %>%
     summarise(cust_total = sum(amount)) %>%
     ungroup
 
-  ## 3 - calculate customer totals --------------------------------------------
+  ## 3 - calculate customer totals per sector ---------------------------------
   PEFInvSec <- PEFInv %>%
     group_by(Customer_ID, sector) %>%
     summarise(sec_total = sum(amount)) %>%

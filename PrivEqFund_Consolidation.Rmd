@@ -89,6 +89,7 @@ fname_in_PEFReg <- paste0(clndir,"PEF_RegionPerc", "_", outdate,".csv")
 fname_in_EcEF1 <- paste0(clndir,"Fctr_EcEmis1", "_", outdate,".csv")
 fname_in_EcEF2 <- paste0(clndir,"Fctr_EcEmis2", "_", outdate,".csv")
 fname_in_CpIF <- paste0(clndir,"Fctr_CapInt", "_", outdate,".csv")
+fname_in_lutC <- paste0(lutdir,"Map_CntrReg", "_", outdate,".csv")
 fname_out_PEFInvPct <- paste0(dptdir,"PEF_InvPct", "_", outdate,".csv")
 fname_out_PEFConsPKfctrs <- paste0(dptdir,"PEF_ConsPKF", "_", outdate,".csv")
 fname_out_PEFConsEC1fctrs <- paste0(dptdir,"PEF_ConsECF1", "_", outdate,".csv")
@@ -137,7 +138,8 @@ Consolidate Capital Intensity Factors (GHG-country/sector) per customer
 CpIF <- read.csv2(fname_in_CpIF, stringsAsFactors = FALSE,
                     fileEncoding = "UTF-8")
 PEFConsPKF <- uS002_PE_ConsolidateFactors(invperc = PEFInvPct,
-                             factors = CpIF)
+                             factors = CpIF,
+                             countrymap <- lutC)
 write.csv2(PEFConsPKF, file = fname_out_PEFConsPKfctrs, row.names = FALSE,
            fileEncoding = "UTF-8")
 head(PEFConsPKF, 5)
@@ -150,7 +152,8 @@ Consolidate emission fators (scope 2) per customer
 EcEF2 <- read.csv2(fname_in_EcEF2, stringsAsFactors = FALSE,
                     fileEncoding = "UTF-8")
 PEFConsECF2 <- uS002_PE_ConsolidateFactors(invperc = PEFInvPct,
-                             factors = EcEF2)
+                             factors = EcEF2,
+                             countrymap <- lutC)
 write.csv2(PEFConsECF2, file = fname_out_PEFConsEC2fctrs, 
            row.names = FALSE, fileEncoding = "UTF-8")
 head(PEFConsECF2, 5)
@@ -163,7 +166,8 @@ Consolidate emission fators (scope 1) per customer
 EcEF1 <- read.csv2(fname_in_EcEF1, stringsAsFactors = FALSE,
                     fileEncoding = "UTF-8")
 PEFConsECF1 <- uS002_PE_ConsolidateFactors(invperc = PEFInvPct,
-                             factors = EcEF1)
+                             factors = EcEF1,
+                             countrymap <- lutC)
 write.csv2(PEFConsECF1, file = fname_out_PEFConsEC1fctrs, 
            row.names = FALSE, fileEncoding = "UTF-8")
 head(PEFConsECF1, 5)
