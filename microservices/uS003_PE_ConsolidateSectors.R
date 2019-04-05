@@ -58,14 +58,14 @@ uS003_PE_ConsolidateSectors <- function(investments, contracted) {
   PEFInvSec <- mutate(PEFInvSec, perc = sec_total / cust_total)
   PEFInvSec <- mutate(PEFInvSec, status = "at_review")
   PEFInvPct <- select(PEFInvSec, -sec_total, -cust_total)
-  rm(PEFInvSec, PEFInvCust)
 
   ## 6 - Add status to contracted ---------------------------------------------
   PEFCtrPct <- ICPE %>%
     select(1,3:20) %>%
     gather(2:19, key = "sector", value = "perc") %>%
     add_column(status = "at_contract")
-
+  PEFCtrPct$sector <- gsub("_", " ", PEFCtrPct$sector)
+  
   ## 7 - Remove contracted percentages if actual investments are present ------
   c <- PEFCtrPct$Customer_ID %in% PEFInvPct$Customer_ID
   PEFCtrPct <- filter(PEFCtrPct, !c)
