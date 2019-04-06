@@ -218,6 +218,7 @@ write.csv2(AE_PrFin2, file = fname_out_AE_PrFin2, row.names = FALSE,
 
 sum(AE_PrFin2$abs_ems, na.rm = TRUE)
 ```
+
 ### Private Equity Funds (scope 1)
 
 Calculate absolute emissions (scope 1) for each Private Equity Fund customer.
@@ -228,22 +229,108 @@ custG <- read.csv2(fname_in_custG, stringsAsFactors = FALSE,
 custG <- custG[custG$IC_type == "private equity fund",]
 lutICS <- read.csv2(fname_in_lutICS, stringsAsFactors = FALSE,
                    fileEncoding = "UTF-8")
-PEF_ConsEC1fctrs <- read.csv2(fname_in_PEFConsEC1fctrs, 
+PEFConsEC1fctrs <- read.csv2(fname_in_PEFConsEC1fctrs, 
                            stringsAsFactors = FALSE, fileEncoding = "UTF-8")
-PEF_ConsPKfctrs <- read.csv2(fname_in_PEFConsPKfctrs, 
+PEFConsPKfctrs <- read.csv2(fname_in_PEFConsPKfctrs, 
                            stringsAsFactors = FALSE, fileEncoding = "UTF-8")
-PEF_ConsSize <- read.csv2(fname_in_PEFConsSize, 
+PEFConsSize <- read.csv2(fname_in_PEFConsSize, 
                            stringsAsFactors = FALSE, fileEncoding = "UTF-8")
-PEF_ConsSctrs <- read.csv2(fname_in_PEFConsSctrs, 
+PEFConsSctrs <- read.csv2(fname_in_PEFConsSctrs, 
                            stringsAsFactors = FALSE, fileEncoding = "UTF-8")
 
 AE_PrEq1 <- uS007_AbsEms_PrEq(customers = custG,
-                            ecfactors = PEF_ConsEC1fctrs,
-                            pkfactors = PEF_ConsPKfctrs,
-                            sizes = PEF_ConsSize,
-                            sectors = PEF_ConsSctrs,
+                            ecfactors = PEFConsEC1fctrs,
+                            pkfactors = PEFConsPKfctrs,
+                            sizes = PEFConsSize,
+                            sectors = PEFConsSctrs,
                             costPK_msme = 1.2,
                             costPK_corp = 0.73,
                             sectormap = lutICS)
+
+write.csv2(AE_PrEq1, file = fname_out_AE_PrEq1, row.names = FALSE,
+           fileEncoding = "UTF-8")
+
 head(AE_PrEq1, 5)
+```
+### Private Equity Funds (scope 2)
+
+Calculate absolute emissions (scope 2) for each Private Equity Fund customer.
+
+```{r 12.AbsEms-PE2, echo=FALSE}
+PEFConsEC2fctrs <- read.csv2(fname_in_PEFConsEC2fctrs, 
+                           stringsAsFactors = FALSE, fileEncoding = "UTF-8")
+
+AE_PrEq2 <- uS007_AbsEms_PrEq(customers = custG,
+                            ecfactors = PEFConsEC2fctrs,
+                            pkfactors = PEFConsPKfctrs,
+                            sizes = PEFConsSize,
+                            sectors = PEFConsSctrs,
+                            costPK_msme = 1.2,
+                            costPK_corp = 0.73,
+                            sectormap = lutICS)
+
+write.csv2(AE_PrEq2, file = fname_out_AE_PrEq1, row.names = FALSE,
+           fileEncoding = "UTF-8")
+
+head(AE_PrEq1, 5)
+```
+
+### Financial Institutions (scope 1)
+
+Calculate absolute emissions (scope 1) for each Financial Institution.
+
+```{r 13.AbsEms-FI1, echo=FALSE}
+custG <- read.csv2(fname_in_custG, stringsAsFactors = FALSE,
+                   fileEncoding = "UTF-8")
+custG <- custG[custG$IC_type == "financial institution",]
+EcEF <- read.csv2(fname_in_EcEF1, stringsAsFactors = FALSE,
+                                  fileEncoding = "UTF-8")
+CpIF <- read.csv2(fname_in_CpIF, stringsAsFactors = FALSE,
+                                 fileEncoding = "UTF-8")
+ICFI <- read.csv2(fname_in_ICFI, stringsAsFactors = FALSE, 
+                                 fileEncoding = "UTF-8")
+lutICS <- read.csv2(fname_in_lutICS, stringsAsFactors = FALSE,
+                                     fileEncoding = "UTF-8")
+lutC <- read.csv2(fname_in_lutC, stringsAsFactors = FALSE,
+                                     fileEncoding = "UTF-8")
+
+AE_FI1 <- uS008_AbsEms_FI(customers = custG,
+                            ecfactors = EcEF,
+                            pkfactors = CpIF,
+                            impactcard = ICFI,
+                            costPK_msme = 1.2,
+                            costPK_corp = 0.73,
+                            countrymap = lutC,
+                            sectormap = lutICS)
+
+write.csv2(AE_FI1, file = fname_out_AE_FI1, row.names = FALSE,
+           fileEncoding = "UTF-8")
+
+head(AE_FI1, 5)
+```
+
+### Financial Institutions (scope 2)
+
+Calculate absolute emissions (scope 2) for each Financial Institution.
+
+```{r 14.AbsEms-FI2, echo=FALSE}
+custG <- read.csv2(fname_in_custG, stringsAsFactors = FALSE,
+                   fileEncoding = "UTF-8")
+custG <- custG[custG$IC_type == "financial institution",]
+EcEF <- read.csv2(fname_in_EcEF2, stringsAsFactors = FALSE,
+                                  fileEncoding = "UTF-8")
+
+AE_FI2 <- uS008_AbsEms_FI(customers = custG,
+                            ecfactors = EcEF,
+                            pkfactors = CpIF,
+                            impactcard = ICFI,
+                            costPK_msme = 1.2,
+                            costPK_corp = 0.73,
+                            countrymap = lutC,
+                            sectormap = lutICS)
+
+write.csv2(AE_FI2, file = fname_out_AE_FI2, row.names = FALSE,
+           fileEncoding = "UTF-8")
+
+head(AE_FI2, 5)
 ```
