@@ -85,8 +85,10 @@ uS003_PE_ConsolidateSectors <- function(investments, contracted) {
       } 
     }
   }
-
+  DF_Out <- PEFCtrPct
+  colnames(DF_Out) <- gsub(" ", "_", colnames(DF_Out))
+  
   ## 8 - Generate output (investment-percentages per customer/country --------
-  Out <- PEFCtrPct
+  Out <- DF_Out
   return(Out)
 }
