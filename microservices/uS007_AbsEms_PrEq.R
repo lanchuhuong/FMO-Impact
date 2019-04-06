@@ -1,7 +1,7 @@
 ## ----------------------------------------------------------------------- 
 ## -- uS007_AbsEms_PrEq -------------------------------------------------- 
 ## ----------------------------------------------------------------------- 
-## Calculates absolute emissions for corporate customer (scope 1 and 2)
+## Calculates absolute emissions for private equity funds (scope 1 and 2)
 ## GVersteeg, March 28th, 2019
 ##
 ## DESCRIPTION
@@ -31,37 +31,33 @@ uS007_AbsEms_PrEq <- function(customers, ecfactors, pkfactors,
 
   require(tidyverse)
   ## 1 - Read in parameters -------------------------------------------------
-  custG <- customers
-  local <- FALSE
-  if(!local) {
-    PEF_ConsECfctrs <- ecfactors
-    PEF_ConsPKfctrs <- pkfactors
-    PEF_ConsSize <- sizes
-    PEF_ConsSctrs <- sectors
+  test <- FALSE
+  if(!test) {
+    custG <- customers
+    PEFConsECF <- ecfactors
+    PEFConsPKF <- pkfactors
+    PEFConsSize <- sizes
+    PEFConsSctrs <- sectors
     lutICS <- sectormap
   } 
-  if(local) {
-    PEF_ConsEC1fctrs <- read.csv2(fname_in_PEFConsEC1fctrs,
+  if(test) {
+    custG <- read.csv2(fname_in_custG, stringsAsFactors = FALSE,
+                         fileEncoding = "UTF-8")
+    custG <- custG[custG$IC_type == "private equity fund",]
+    PEFConsECF <- read.csv2(fname_in_PEFConsEC1fctrs,
                           stringsAsFactors = FALSE, fileEncoding = "UTF-8")
-    PEF_ConsPKfctrs <- read.csv2(fname_in_PEFConsPKfctrs,
+    PEFConsPKF <- read.csv2(fname_in_PEFConsPKfctrs,
                          stringsAsFactors = FALSE, fileEncoding = "UTF-8")
-    PEF_ConsSize <- read.csv2(fname_in_PEFConsSize,
+    PEFConsSize <- read.csv2(fname_in_PEFConsSize,
                       stringsAsFactors = FALSE, fileEncoding = "UTF-8")
-    PEF_ConsSctrs <- read.csv2(fname_in_PEFConsSctrs,
+    PEFConsSctrs <- read.csv2(fname_in_PEFConsSctrs,
                        stringsAsFactors = FALSE, fileEncoding = "UTF-8")
     costPK_corp <- 0.73
     costPK_msme <- 1.2
   }
 
-
-    
-  ## 2 - prepare data frame PEFConsSctrs & GHG_sectors ---------------------
-  PEFConsSctrs$sector <- gsub("_", " ", PEFConsSctrs$sector)
-  PEFConsSctrs <- select(PEFConsSctrs, -status)
-  PEFConsSctrs2 <- spread(PEFConsSctrs, key = sector, value = perc)
-  PEFConsSctrs2 <- select(PEFConsSctrs2, 
-                          c(1:6,16,7,11,12,8,10,15,17,18,19,9,14,13))
-  GHG_Sectors <- gsub("_"," ", colnames(PEF_ConsECfctrs))[-1]
+  ## 2 - prepare vector with GHG_sectors ---------------------
+  GHG_Sectors <- gsub("_"," ", colnames(PEFConsECF))[-1]
   GHG_Sectors[2] <- "Business Services"
   GHG_Sectors[3] <- "Cement & steel manufacturing"
   GHG_Sectors[11] <- "Mining & Quarrying"
@@ -75,16 +71,18 @@ uS007_AbsEms_PrEq <- function(customers, ecfactors, pkfactors,
                      stringsAsFactors = FALSE)
   
   ## 3 - absolute emissions (always modeled) --------------------------------
-  ## custG <- bck
-  ## bck <- custG
-  ## custG <- custG[custG$Customer_ID == "C10003152",]
+  ## Sectors in PEFConsSctrs are Impact Card Sectors
+  ## Sectors in PEF_ConsECF are GHG Sectors
+  ## Sectors in the output need to be IC-Modeled Sectors !
+  ## Please also note the check on V2Agriculture, Ref Xls-tab Calcs!AT219
+  ##               remove if not needed after check
   for(i in seq_along(custG$Customer_ID)) {
     dfAE[i,] <- NA
     curcust <- custG$Customer_ID[i]
     dfAE$Customer_ID[i] <- curcust
-    V1 <- PEFConsSctrs2[PEFConsSctrs2$Customer_ID == curcust,]
-    V2 <- PEF_ConsECfctrs[PEF_ConsECfctrs$Customer_ID == curcust,]
-    V3 <- PEF_ConsPKfctrs[PEF_ConsPKfctrs$Customer_ID == curcust,]
+    V1 <- PEFConsSctrs[PEFConsSctrs$Customer_ID == curcust,-1]
+    V2 <- PEFConsECF[PEFConsECF$Customer_ID == curcust,-1]
+    V3 <- PEFConsPKF[PEFConsPKF$Customer_ID == curcust,-1]
     V4 <- PEFConsSize[PEFConsSize$Customer_ID == curcust,]
     NetPort <- custG$Net_portfolio[i]
     noNP <- is.na(NetPort)
@@ -97,12 +95,12 @@ uS007_AbsEms_PrEq <- function(customers, ecfactors, pkfactors,
       for(j in c(1:length(lutICS$Sector_modeled))) {
         cursector <- lutICS$Sector_modeled[j]
         SecEms[j] <- NA
-        if(!noNP & !is.na(as.numeric(V1[j+1]))) {
-          a <- as.numeric(V2[which(GHG_Sectors %in% cursector)+1])
-          b <- as.numeric(V3[which(GHG_Sectors %in% cursector)+1])
+        if(!noNP & !is.na(as.numeric(V1[j]))) {
+          a <- as.numeric(V2[which(GHG_Sectors %in% cursector)])
+          b <- as.numeric(V3[which(GHG_Sectors %in% cursector)])
           c <- ifelse(is.na(V4$msme), 1, 
                       (V4$msme*costPK_msme + V4$corporate*costPK_corp))
-          d <- as.numeric(V1[j+1])
+          d <- as.numeric(V1[j])
           SecEms[j] <- a * b * c * d * NetPort / 10^6
           }
         }  
