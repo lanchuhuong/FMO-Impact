@@ -21,7 +21,7 @@ Four calculation models are used, sequenced below in prefered usage:
 * model 1. use verified, actual GHG emissions (ISO 14064)
 * model 2. use primary physical activity data to estimate GHG emission
 * model 3. use primary economic activity data to estimate GHG emission
-* model 2. use portfolio data to estimate GHG emission
+* model 4. use portfolio data to estimate GHG emission
 
 ## Overview steps in script
 
@@ -223,27 +223,27 @@ sum(AE_PrFin2$abs_ems, na.rm = TRUE)
 Calculate absolute emissions (scope 1) for each Private Equity Fund customer.
 
 ```{r 11.AbsEms-PE1, echo=FALSE}
-# custG <- read.csv2(fname_in_custG, stringsAsFactors = FALSE,
-#                     fileEncoding = "UTF-8")
-# custG <- custG[custG$IC_type == "Private Equity Fund",]
-# lutICS <- read.csv2(fname_in_lutICS, stringsAsFactors = FALSE,
-#                     fileEncoding = "UTF-8")
-# PEF_ConsEC1fctrs <- read.csv2(fname_in_PEFConsEC1fctrs, 
-#                             stringsAsFactors = FALSE, fileEncoding = "UTF-8")
-# PEF_ConsPKfctrs <- read.csv2(fname_in_PEFConsPKfctrs, 
-#                             stringsAsFactors = FALSE, fileEncoding = "UTF-8")
-# PEF_ConsSize <- read.csv2(fname_in_PEFConsSize, 
-#                             stringsAsFactors = FALSE, fileEncoding = "UTF-8")
-# PEF_ConsSctrs <- read.csv2(fname_in_PEFConsSctrs, 
-#                             stringsAsFactors = FALSE, fileEncoding = "UTF-8")
-# 
-# AE_PrEq1 <- uS007_AbsEms_PrEq(customers = custG,
-#                              ecfactors = PEF_ConsEC1fctrs,
-#                              pkfactors = PEF_ConsPKfctrs,
-#                              sizes = PEF_ConsSize,
-#                              sectors = PEF_ConsSctrs,
-#                              costPK_msme = 1.2,
-#                              costPK_corp = 0.73,
-#                              sectormap = lutICS)
-# head(AE_PrEq1, 5)
+custG <- read.csv2(fname_in_custG, stringsAsFactors = FALSE,
+                   fileEncoding = "UTF-8")
+custG <- custG[custG$IC_type == "private equity fund",]
+lutICS <- read.csv2(fname_in_lutICS, stringsAsFactors = FALSE,
+                   fileEncoding = "UTF-8")
+PEF_ConsEC1fctrs <- read.csv2(fname_in_PEFConsEC1fctrs, 
+                           stringsAsFactors = FALSE, fileEncoding = "UTF-8")
+PEF_ConsPKfctrs <- read.csv2(fname_in_PEFConsPKfctrs, 
+                           stringsAsFactors = FALSE, fileEncoding = "UTF-8")
+PEF_ConsSize <- read.csv2(fname_in_PEFConsSize, 
+                           stringsAsFactors = FALSE, fileEncoding = "UTF-8")
+PEF_ConsSctrs <- read.csv2(fname_in_PEFConsSctrs, 
+                           stringsAsFactors = FALSE, fileEncoding = "UTF-8")
+
+AE_PrEq1 <- uS007_AbsEms_PrEq(customers = custG,
+                            ecfactors = PEF_ConsEC1fctrs,
+                            pkfactors = PEF_ConsPKfctrs,
+                            sizes = PEF_ConsSize,
+                            sectors = PEF_ConsSctrs,
+                            costPK_msme = 1.2,
+                            costPK_corp = 0.73,
+                            sectormap = lutICS)
+head(AE_PrEq1, 5)
 ```
