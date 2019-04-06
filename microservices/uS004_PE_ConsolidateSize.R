@@ -51,11 +51,13 @@ uS004_PE_ConsolidateSize <- function(investments, contracted) {
   PEFInvPct <- select(PEFInvSme, -sme_total, -cust_total, -sme)
 
   ## 6 - Transform contracted and add status ----------------------------------
+  ## please note the 'strange' test on Agriculture (ref. excel-tab IDFP - E40)
+  ## remove ifelse if not needed..!
   PEFCtrPct <- ICPE
   PEFCtrPct$MFI[which(is.na(PEFCtrPct$MFI))] <- 0
   PEFCtrPct$SME[which(is.na(PEFCtrPct$SME))] <- 0
   PEFCtrPct <- PEFCtrPct %>%
-    mutate(msme = (SME + MFI)) %>%
+    mutate(msme = (ifelse(is.na(Agriculture),NA,(SME + MFI)))) %>%
     select(1,24) %>%
     add_column(status = "at_contract")
 
