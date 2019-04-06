@@ -59,23 +59,34 @@ uS003_PE_ConsolidateSectors <- function(investments, contracted) {
   PEFInvSec <- mutate(PEFInvSec, status = "at_review")
   PEFInvPct <- select(PEFInvSec, -sec_total, -cust_total)
 
-  ## 6 - Add status to contracted ---------------------------------------------
+  ## 6 - Copy ICPE, select/rearrange IC-Sectors, add/set status "at_contract --
   PEFCtrPct <- ICPE %>%
-    select(1,3:20) %>%
-    gather(2:19, key = "sector", value = "perc") %>%
+    select(c(1,3:7,17,8,12,13,9,11,16,18:20,10,15,14)) %>%
     add_column(status = "at_contract")
-  PEFCtrPct$sector <- gsub("_", " ", PEFCtrPct$sector)
-  
-  ## 7 - Remove contracted percentages if actual investments are present ------
-  c <- PEFCtrPct$Customer_ID %in% PEFInvPct$Customer_ID
-  PEFCtrPct <- filter(PEFCtrPct, !c)
-  PEFCtrPct <- PEFCtrPct[which(!is.na(PEFCtrPct$perc)),]
+  colnames(PEFCtrPct) <- gsub("_", " ", colnames(PEFCtrPct))
+  colnames(PEFCtrPct)[11] <- "Heavy industry"
 
-  ## 8 - combine actual and contracted investement percentages ----------------
-  DF_Out <- union(PEFInvPct, PEFCtrPct)
-  
-  ## 9 - Generate output (investment-percentages per customer/country --------
-  Out <- arrange(DF_Out, Customer_ID, sector)
-  ## Out <- DF_Out
+  ## 7 - Replace rows of PEFCtrPct with investments if these are available, --
+  ## otherwise keep contracted percentages -----------------------------------
+  y <- colnames(PEFCtrPct)[c(2:19)]
+  for (i in c(1:nrow(PEFCtrPct))) {
+    currow <- PEFCtrPct[i,]
+    curcust <- as.character(currow[1])
+    inv_present <- curcust %in% PEFInvPct$Customer_ID
+    if(inv_present) {
+      curinv <- PEFInvPct[PEFInvPct$Customer_ID == curcust,]
+      currow$status <- "at_review"
+      currow[,c(2:19)] <- 0
+      for (j in seq_along(y)) {
+        if(y[j] %in% curinv$sector) {
+          currow[j+1] <- curinv$perc[curinv$sector == y[j]]
+        }
+      PEFCtrPct[i,] <- currow
+      } 
+    }
+  }
+
+  ## 8 - Generate output (investment-percentages per customer/country --------
+  Out <- PEFCtrPct
   return(Out)
 }
