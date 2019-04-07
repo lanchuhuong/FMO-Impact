@@ -60,6 +60,7 @@ library("tidyverse", warn.conflicts=FALSE)      ## load tidyverse silently
 source("microservices/uS005_AbsEms_Corp.R")
 source("microservices/uS006_AbsEms_PrFin.R")
 source("microservices/uS007_AbsEms_PrEq.R")
+source("microservices/uS008_AbsEms_FI.R")
 
 ## Setup locations
 rawdir <- "datalake/raw_data/"
@@ -115,7 +116,7 @@ fname_out_AE <- paste0(inddir,"KPI_aGHG", "_", outdate,".csv")
 ## General customers
 ### Determining customer types
 
-```{r 1.PEF-InvPct, ECHO = TRUE}
+```{r 1.PEF-InvPct, echo=FALSE}
 custG <- read.csv2(fname_in_custG, stringsAsFactors = FALSE,
                     fileEncoding = "UTF-8")
 table(custG$IC_type)
@@ -127,7 +128,7 @@ table(custG$IC_type)
 
 Calculate absolute emissions (Scope 1) for each Corporate customer.
 
-```{r 7.AbsEms-Corp1, ECHO = TRUE}
+```{r 2.AbsEms-Corp1, echo=TRUE}
 custG <- read.csv2(fname_in_custG, stringsAsFactors = FALSE,
                     fileEncoding = "UTF-8")
 custG <- custG[custG$IC_type == "corporate",]
@@ -156,7 +157,7 @@ head(AE_Corp1, 10)
 
 Calculate absolute emissions (Scope 2) for each Corporate customer.
 
-```{r 8.AbsEms-Corp2, ECHO = TRUE}
+```{r 3.AbsEms-Corp2, echo=FALSE}
 EcEF <- read.csv2(fname_in_EcEF2, stringsAsFactors = FALSE,
                     fileEncoding = "UTF-8")
 
@@ -176,7 +177,7 @@ table(AE_Corp2$method)
 
 Calculate absolute emissions (Scope 1) for each project finance customer.
 
-```{r 9.AbsEms-PF1, ECHO = TRUE}
+```{r 4.AbsEms-PF1, echo=FALSE}
 custG <- read.csv2(fname_in_custG, stringsAsFactors = FALSE,
                     fileEncoding = "UTF-8")
 custG <- custG[custG$IC_type == "project finance",]
@@ -203,7 +204,7 @@ hist(AE_PrFin1$abs_ems, main = "Histogram of Emissions",
 
 Calculate absolute emissions (Scope 2) for each project finance customer.
 
-```{r 10.AbsEms-PF2, ECHO = TRUE}
+```{r 5.AbsEms-PF2, echo=FALSE}
 EcEF <- read.csv2(fname_in_EcEF2, stringsAsFactors = FALSE,
                     fileEncoding = "UTF-8")
 
@@ -224,7 +225,7 @@ sum(AE_PrFin2$abs_ems, na.rm = TRUE)
 
 Calculate absolute emissions (scope 1) for each Private Equity Fund customer.
 
-```{r 11.AbsEms-PE1, echo=FALSE}
+```{r 6.AbsEms-PE1, echo=FALSE}
 custG <- read.csv2(fname_in_custG, stringsAsFactors = FALSE,
                    fileEncoding = "UTF-8")
 custG <- custG[custG$IC_type == "private equity fund",]
@@ -257,7 +258,7 @@ head(AE_PrEq1, 5)
 
 Calculate absolute emissions (scope 2) for each Private Equity Fund customer.
 
-```{r 12.AbsEms-PE2, echo=FALSE}
+```{r 6.AbsEms-PE2, echo=FALSE}
 PEFConsEC2fctrs <- read.csv2(fname_in_PEFConsEC2fctrs, 
                            stringsAsFactors = FALSE, fileEncoding = "UTF-8")
 
@@ -280,7 +281,7 @@ head(AE_PrEq1, 5)
 
 Calculate absolute emissions (scope 1) for each Financial Institution.
 
-```{r 13.AbsEms-FI1, echo=FALSE}
+```{r 7.AbsEms-FI1, echo=FALSE}
 custG <- read.csv2(fname_in_custG, stringsAsFactors = FALSE,
                    fileEncoding = "UTF-8")
 custG <- custG[custG$IC_type == "financial institution",]
@@ -314,7 +315,7 @@ head(AE_FI1, 5)
 
 Calculate absolute emissions (scope 2) for each Financial Institution.
 
-```{r 14.AbsEms-FI2, echo=FALSE}
+```{r 8.AbsEms-FI2, echo=FALSE}
 custG <- read.csv2(fname_in_custG, stringsAsFactors = FALSE,
                    fileEncoding = "UTF-8")
 custG <- custG[custG$IC_type == "financial institution",]
@@ -341,7 +342,7 @@ head(AE_FI2, 5)
 ### Table of emissions per department
 Combine all absolute emissions datapoints and for each customer add the Net Portfolio and the relevant department.
 
-```{r 15.Results 1, echo=FALSE}
+```{r 9.Results 1, echo=FALSE}
 custG <- read.csv2(fname_in_custG, stringsAsFactors = FALSE,
                    fileEncoding = "UTF-8")
 
@@ -391,12 +392,13 @@ AEsum
 
 Show the absolute emissions for each scope per department in a stacked bar chart.
 
-```{r 15.Results 1, echo=FALSE}
+```{r 10.Stacked bar, echo=TRUE}
 
 dfG1 <- AEsum %>%
   select(-Inv, -GHGpMEur, -AbsEms) %>%
   mutate(Scope_1 = (Scope_1/10^3), Scope_2 = (Scope_2/10^3)) %>% 
   gather(key = "scope", value = "ems", -Dep, na.rm = TRUE)
+
 G1 <- ggplot() + geom_bar(aes(y = ems, x = Dep, fill = scope), 
                           data = dfG1, stat="identity") +
                           labs(x="Department", y="Absolute Emissions") +
