@@ -107,6 +107,7 @@ fname_out_AE_PrEq1 <- paste0(inddir,"KPI_aGHG_PrEq1", "_", outdate,".csv")
 fname_out_AE_PrEq2 <- paste0(inddir,"KPI_aGHG_PrEq2", "_", outdate,".csv")
 fname_out_AE_FI1 <- paste0(inddir,"KPI_aGHG_FI1", "_", outdate,".csv")
 fname_out_AE_FI2 <- paste0(inddir,"KPI_aGHG_FI2", "_", outdate,".csv")
+fname_out_AE <- paste0(inddir,"KPI_aGHG", "_", outdate,".csv")
 
 ```
 
@@ -334,3 +335,75 @@ write.csv2(AE_FI2, file = fname_out_AE_FI2, row.names = FALSE,
 
 head(AE_FI2, 5)
 ```
+
+## Results
+
+### Table of emissions per department
+Combine all absolute emissions datapoints and for each customer add the Net Portfolio and the relevant department.
+
+```{r 15.Results 1, echo=FALSE}
+custG <- read.csv2(fname_in_custG, stringsAsFactors = FALSE,
+                   fileEncoding = "UTF-8")
+
+colnames(AE_Corp1) <- paste0(colnames(AE_Corp1),"_1")
+colnames(AE_Corp2) <- paste0(colnames(AE_Corp2),"_2")
+colnames(AE_FI1) <- paste0(colnames(AE_FI1),"_1")
+colnames(AE_FI2) <- paste0(colnames(AE_FI2),"_2")
+colnames(AE_PrEq1) <- paste0(colnames(AE_PrEq1),"_1")
+colnames(AE_PrEq2) <- paste0(colnames(AE_PrEq2),"_2")
+colnames(AE_PrFin1) <- paste0(colnames(AE_PrFin1),"_1")
+colnames(AE_PrFin2) <- paste0(colnames(AE_PrFin2),"_2")
+AE <- rbind(cbind(AE_Corp1, AE_Corp2),
+            cbind(AE_FI1, AE_FI2),
+            cbind(AE_PrEq1, AE_PrEq2),
+            cbind(AE_PrFin1, AE_PrFin2))
+AE <- select(AE, c(1,2,5,6))
+colnames(AE)[1] <- "Customer_ID"
+colnames(AE)[2] <- "Scope_1"
+colnames(AE)[3] <- "Scope_2"
+colnames(AE)[4] <- "Method"
+AE <- mutate(AE, Dep = NA, NetPort = NA)
+for (i in c(1:nrow(AE))) {
+  curcust <- AE$Customer_ID[i]
+  AE$Dep[i] <- custG$Department[custG$Customer_ID == curcust]
+  NetPort <- custG$Net_portfolio[custG$Customer_ID == curcust]
+  if(!(is.na(NetPort))) {
+    NetPort <- ifelse(NetPort < 0, 0, NetPort)
+  }
+  AE$NetPort[i] <- NetPort
+  AE <- mutate(AE, Ems = (Scope_1 + Scope_2))
+}
+write.csv2(AE, file = fname_out_AE, row.names = FALSE,
+         fileEncoding = "UTF-8")
+
+AEsum <- AE %>%
+  group_by(Dep) %>%
+  summarise(Scope_1 = sum(Scope_1, na.rm = TRUE), 
+            Scope_2 = sum(Scope_2, na.rm = TRUE),
+            AbsEms = sum(Ems, na.rm = TRUE), 
+            Inv = sum(NetPort, na.rm = TRUE)) %>%
+  mutate(GHGpMEur = (AbsEms / (Inv / 10^6)))
+
+AEsum
+```
+
+### Show stacked bar chart of emissions per scope within departments
+
+Show the absolute emissions for each scope per department in a stacked bar chart.
+
+```{r 15.Results 1, echo=FALSE}
+
+dfG1 <- AEsum %>%
+  select(-Inv, -GHGpMEur, -AbsEms) %>%
+  mutate(Scope_1 = (Scope_1/10^3), Scope_2 = (Scope_2/10^3)) %>% 
+  gather(key = "scope", value = "ems", -Dep, na.rm = TRUE)
+G1 <- ggplot() + geom_bar(aes(y = ems, x = Dep, fill = scope), 
+                          data = dfG1, stat="identity") +
+                          labs(x="Department", y="Absolute Emissions") +
+                          theme(axis.text.x = element_text(angle = -50, 
+                                                           hjust = 0,
+                                                           vjust = 1))
+G1
+```
+
+
