@@ -28,7 +28,6 @@
 ## continues if the package is not found, whereas library will throw an error
 library(tidyverse)
 library(readxl)
-library(stringr)
 
 ## Setup locations
 insite <- ""

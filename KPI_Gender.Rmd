@@ -17,8 +17,9 @@ The script uses the data available in the Excel-sheet "Gender Indicators.xlsx", 
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-```{r environment, include=FALSE}
+```{r environment, include=FALSE, warning=FALSE}
 library(tidyverse)
+library(knitr)
 
 ## Setup locations
 insite <- ""
@@ -84,7 +85,7 @@ Ind_C <- Ind_B/Ind_A
 Ind_C
 ```
 
-## D: Indicator "# Clients (total)"
+### D: Indicator "# Clients (total)"
 
 ```{r ind_d, echo=TRUE, warning=FALSE}
 df <- GenInd %>%
@@ -95,7 +96,7 @@ Ind_D <- length(unique(df$Customer_Number))
 Ind_D
 ```
 
-### E Indicator: "#clients reported on Direct Female Employment"
+### E: Indicator "#clients reported on Direct Female Employment"
 
 ```{r ind_e, echo=TRUE, warning=FALSE}
 df <- GenInd %>%
@@ -140,3 +141,76 @@ Ind_H
 Ind_I <- Ind_B/Ind_E
 Ind_I
 ```
+
+## Results
+
+```{r setup result, echo=FALSE, warning=FALSE}
+result <- data.frame(Indicator = character(0),
+                     Datapoint = character(0),
+                     DirectInv = numeric(0),
+                     Perc = numeric(0),
+                     stringsAsFactors = FALSE)
+
+i <- 1
+result[i,] <- NA
+result$Indicator[i] <- "Number of clients"
+result$Datapoint[i] <- "Total"
+result$DirectInv[i] <- round(Ind_D,0)
+result$Perc[i] <- NA
+
+i <- 2
+result[i,] <- NA
+result$Indicator[i] <- ""
+result$Datapoint[i] <- "Reporting direct female employment"
+result$DirectInv[i] <- round(Ind_E,0)
+result$Perc[i] <- paste0(round(Ind_F*100,0), " %")
+
+i <- 3
+result[i,] <- "---"
+
+i <- 4
+result[i,] <- NA
+result$Indicator[i] <- "Portfolio (all clients)"
+result$Datapoint[i] <- "# Direct employment"
+result$DirectInv[i] <- round(Ind_A,0)
+result$Perc[i] <- NA
+
+i <- 5
+result[i,] <- NA
+result$Indicator[i] <- ""
+result$Datapoint[i] <- "# Direct female employment"
+result$DirectInv[i] <- round(Ind_B,0)
+result$Perc[i] <- paste0(round(Ind_C*100,0), " %")
+
+i <- 6
+result[i,] <- "---"
+
+i <- 7
+result[i,] <- NA
+result$Indicator[i] <- "Portfolio (clients reporting female employment)"
+result$Datapoint[i] <- "# Direct employment"
+result$DirectInv[i] <- round(Ind_G,0)
+result$Perc[i] <- NA
+
+i <- 8
+result[i,] <- NA
+result$Indicator[i] <- ""
+result$Datapoint[i] <- "# Direct female employment"
+result$DirectInv[i] <- round(Ind_B,0)
+result$Perc[i] <- paste0(round(Ind_H*100,0), " %")
+
+i <- 9
+result[i,] <- NA
+result$Indicator[i] <- ""
+result$Datapoint[i] <- "Avg. female employment per client"
+result$DirectInv[i] <- round(Ind_I,0)
+result$Perc[i] <- NA
+```
+
+
+```{r show result, echo=TRUE, warning=FALSE}
+options(knitr.kable.NA = "")
+kable(result[-c(3,6),], caption="FMO Gender Indicators",
+      row.names = FALSE)
+```
+
