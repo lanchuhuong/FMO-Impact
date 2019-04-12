@@ -1,0 +1,189 @@
+---
+title: "KPI_Gender"
+author: "G. Versteeg"
+date: "4/9/2019"
+output: pdf_document
+---
+
+# Gender Accounting
+## In short
+This script calculates some of the indicators used in FMO Gender Data (based on Impact Card Data). It is meant to show R's ease-of-use.
+
+## Basis of data used
+The script uses the data available in the Excel-sheet "Gender Indicators.xlsx", dd. April 7th, 2019 provided by Guilia Debernardini.
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r environment, include=FALSE, warning=FALSE}
+library(tidyverse)
+library(knitr)
+
+## Setup locations
+insite <- ""
+rawdir <- "datalake/raw_data/"
+lutdir <- "datalake/luts/"
+clndir <- "datalake/clean_data/"
+valdir <- "datalake/valid_data/"
+inddir <- "datalake/indicators/"
+dptdir <- "datalake/data_points/"
+laydir <- "datalake/infoproducts/GIS_layers/"
+qlkdir <- "datalake/infoproducts/Qlik_cubes/"
+sopdir <- "datalake/infoproducts/sopact_sheets/"
+
+## Setup parameters
+version <- ""
+indate = "2019-04-07"
+lutdate = ""
+outdate = "2019-04-07"
+
+## Setup filenames
+fname_in_custPF <- paste0(clndir,"CustPortfolio", "_", outdate,".csv")
+fname_in_icGen <- paste0(clndir,"IC_General", "_", outdate,".csv")
+fname_in_GenInd <- paste0(clndir,"GenderIndicators", "_", outdate,".csv")
+```
+
+# Portfolio
+
+## Direct Investments (incl. FI, AGRI, EN, PE)
+
+### ABC: Indicatoren "Percentage % Female Employment"
+```{r ind_a, echo=TRUE, warning=FALSE}
+GenInd <- read.csv2(fname_in_GenInd,
+                    stringsAsFactors = FALSE,
+                    fileEncoding = "UTF-8")
+Ind_A <- as.numeric(GenInd$Direct_employment_Operations_Maintenance_nr)
+
+icGen <- read.csv2(fname_in_icGen,
+                    stringsAsFactors = FALSE,
+                    fileEncoding = "UTF-8")
+IQ <- "Direct employment (operations & maintenance) for women"
+df <- icGen %>%
+  filter(Impact_Question == IQ) %>%
+  filter(Active_Non_Active != "NOT ACTIVE") %>%
+  filter(Impact_Card_Type != "Private Equity Fund") %>%
+  group_by(Customer_Name) %>%
+  slice(1) %>%
+  ungroup
+Ind_B <- sum(as.numeric(df$Answer), na.rm = TRUE)
+
+Ind_C <- Ind_B/Ind_A
+Ind_C
+```
+
+### DEF: Indicatoren "Coverage rate"
+
+```{r ind_d, echo=TRUE, warning=FALSE}
+df <- GenInd %>%
+  filter(Active_Inactive_account != "NOT ACTIVE") %>%
+  filter(Impact_Card_Type != "Private Equity Fund")
+Ind_D <- length(unique(df$Customer_Number))
+
+df <- df %>%
+  filter(nr_Direct_Employment_operations_and_maintainence_for_women != "Not Reported")
+Ind_E <- length(unique(df$Customer_Number))
+
+Ind_F <- Ind_E/Ind_D
+```
+
+### G: Indicator "# Total Direct Employment (for clients that reported on female employment)"
+
+```{r ind_g, echo=TRUE, warning=FALSE}
+df <- GenInd %>%
+  filter(Female_Employment_Reported_Not_Reported_by_Client != "Not Reported") %>%
+  filter(Active_Inactive_account != "NOT ACTIVE") %>%
+  filter(!is.na(Active_Inactive_account)) %>%
+  filter(Impact_Card_Type != "Private Equity Fund")
+v <- as.numeric(df$Direct_employment_Operations_Maintenance_nr)
+Ind_G <- sum(v, na.rm = TRUE)
+Ind_G
+```
+
+### H: Indicator "% Female Employment (for clients that reported on female employment)"
+
+```{r ind_h, echo=TRUE, warning=FALSE}
+Ind_H <- Ind_B/Ind_G
+Ind_H
+```
+
+### I: Indicator "Avg. per client (for clients that reported on female employment)"
+
+```{r ind_i, echo=TRUE, warning=FALSE}
+Ind_I <- Ind_B/Ind_E
+Ind_I
+```
+
+## Results
+
+```{r setup result, echo=FALSE, warning=FALSE}
+result <- data.frame(Indicator = character(0),
+                     Datapoint = character(0),
+                     DirectInv = numeric(0),
+                     Perc = numeric(0),
+                     stringsAsFactors = FALSE)
+
+i <- 1
+result[i,] <- NA
+result$Indicator[i] <- "Number of clients"
+result$Datapoint[i] <- "Total"
+result$DirectInv[i] <- round(Ind_D,0)
+result$Perc[i] <- NA
+
+i <- 2
+result[i,] <- NA
+result$Indicator[i] <- ""
+result$Datapoint[i] <- "Reporting direct female employment"
+result$DirectInv[i] <- round(Ind_E,0)
+result$Perc[i] <- paste0(round(Ind_F*100,0), " %")
+
+i <- 3
+result[i,] <- "---"
+
+i <- 4
+result[i,] <- NA
+result$Indicator[i] <- "Portfolio (all clients)"
+result$Datapoint[i] <- "# Direct employment"
+result$DirectInv[i] <- round(Ind_A,0)
+result$Perc[i] <- NA
+
+i <- 5
+result[i,] <- NA
+result$Indicator[i] <- ""
+result$Datapoint[i] <- "# Direct female employment"
+result$DirectInv[i] <- round(Ind_B,0)
+result$Perc[i] <- paste0(round(Ind_C*100,0), " %")
+
+i <- 6
+result[i,] <- "---"
+
+i <- 7
+result[i,] <- NA
+result$Indicator[i] <- "Portfolio (clients reporting female employment)"
+result$Datapoint[i] <- "# Direct employment"
+result$DirectInv[i] <- round(Ind_G,0)
+result$Perc[i] <- NA
+
+i <- 8
+result[i,] <- NA
+result$Indicator[i] <- ""
+result$Datapoint[i] <- "# Direct female employment"
+result$DirectInv[i] <- round(Ind_B,0)
+result$Perc[i] <- paste0(round(Ind_H*100,0), " %")
+
+i <- 9
+result[i,] <- NA
+result$Indicator[i] <- ""
+result$Datapoint[i] <- "Avg. female employment per client"
+result$DirectInv[i] <- round(Ind_I,0)
+result$Perc[i] <- NA
+```
+
+
+```{r show result, echo=TRUE, warning=FALSE}
+options(knitr.kable.NA = "")
+kable(result[-c(3,6),], caption="FMO Gender Indicators",
+      row.names = FALSE)
+```
+
