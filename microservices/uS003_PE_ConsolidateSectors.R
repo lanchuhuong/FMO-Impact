@@ -23,51 +23,42 @@
 uS003_PE_ConsolidateSectors <- function(investments, contracted) {
   require(tidyverse)
   ## 1 - Read in parameters: investments, contracted --------------------------
-  test <- FALSE
-  if(!test) {
-    PEFInv <- investments
-    ICPE <- contracted
-  } 
-  if(test) {
-    PEFInv <- read.csv2(fname_in_PEFInv,
-                            stringsAsFactors = FALSE, fileEncoding = "UTF-8")
-    ICPE <- read.csv2(fname_in_ICPE,
-                            stringsAsFactors = FALSE, fileEncoding = "UTF-8")
-  }
-  
+  PEFInv <- investments
+  ICPE <- contracted
+
   ## 2 - calculate customer totals --------------------------------------------
   PEFInvCust <- PEFInv %>%
     group_by(Customer_ID) %>%
-    summarise(cust_total = sum(amount)) %>%
+    summarise(cust_total = sum(outstanding)) %>%
     ungroup
 
   ## 3 - calculate customer totals per sector ---------------------------------
   PEFInvSec <- PEFInv %>%
     group_by(Customer_ID, sector) %>%
-    summarise(sec_total = sum(amount)) %>%
+    summarise(sec_total = sum(outstanding)) %>%
     mutate(cust_total = 0) %>%
     ungroup
 
   ## 4 - Add column cust totals -----------------------------------------------
   for (i in c(1:nrow(PEFInvSec))) {
-    curcust <- as.character(PEFInvSec[i,1])
-    PEFInvSec[i,4] <- PEFInvCust[PEFInvCust$Customer_ID == curcust, 2]
+    PEFInvSec[i,4] <- PEFInvCust$cust_total[
+      PEFInvCust$Customer_ID == PEFInvSec$Customer_ID[i]]
   }   
 
   ## 5 - Calculate percentage and add status ----------------------------------
   PEFInvSec <- mutate(PEFInvSec, perc = sec_total / cust_total)
   PEFInvSec <- mutate(PEFInvSec, status = "at_review")
   PEFInvPct <- select(PEFInvSec, -sec_total, -cust_total)
+  rm(PEFInvSec)
 
   ## 6 - Copy ICPE, select/rearrange IC-Sectors, add/set status "at_contract --
   PEFCtrPct <- ICPE %>%
-    select(c(1,3:7,17,8,12,13,9,11,16,18:20,10,15,14)) %>%
+    select(c(1:6,16,7,11,12,8,10,15,17:19,9,14,13)) %>%
     add_column(status = "at_contract")
-  colnames(PEFCtrPct) <- gsub("_", " ", colnames(PEFCtrPct))
-  colnames(PEFCtrPct)[11] <- "Heavy industry"
+  # colnames(PEFCtrPct)[11] <- "Heavy industry"
 
   ## 7 - Replace rows of PEFCtrPct with investments if these are available, --
-  ## otherwise keep contracted percentages -----------------------------------
+  ##     otherwise keep contracted asset percentages -------------------------
   y <- colnames(PEFCtrPct)[c(2:19)]
   for (i in c(1:nrow(PEFCtrPct))) {
     currow <- PEFCtrPct[i,]
@@ -85,10 +76,8 @@ uS003_PE_ConsolidateSectors <- function(investments, contracted) {
       } 
     }
   }
-  DF_Out <- PEFCtrPct
-  colnames(DF_Out) <- gsub(" ", "_", colnames(DF_Out))
-  
+
   ## 8 - Generate output (investment-percentages per customer/country --------
-  Out <- DF_Out
+  Out <- PEFCtrPct
   return(Out)
 }
