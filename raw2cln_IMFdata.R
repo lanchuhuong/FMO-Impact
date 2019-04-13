@@ -38,12 +38,13 @@ sopdir <- "datalake/infoproducts/sopact_sheets/"
 
 ## Setup parameters
 version <- ""
-indate = ""
+indate = "2019-04-11"
 lutdate = ""
 outdate = "2019-03-31"
 
 ## Setup filenames
 fname_in_raw <- paste0(rawdir,"WEO_Data.csv")
+fname_in_lutC <- paste0(lutdir,"CountriesExt", "_", indate,".xlsx")
 fname_out_IMF <- paste0(lutdir,"IMF_countries", "_", outdate,".csv")
 
 ## ----------------------------------------------------------------------- 
@@ -73,7 +74,22 @@ raw$Population <- as.numeric(gsub(",", "", raw$Population))
 raw$Unemployment <- as.numeric(gsub(",", "", raw$Unemployment))
 raw$OilImport <- as.numeric(gsub(",", "", raw$OilImport))
 
-## 3 - wegschrijven CSV-file in datalake/clean_data
+## 4 - map countries to Countries_Mapped_Model using lutC
+lutC <- read_xlsx(fname_in_lutC, range = "Sheet1!A1:B221")
+ix <- raw$Country %in% lutC$Countries
+raw <- mutate(raw, GHG_Country = NA)
+for (i in seq_along(raw$Country)) {
+  if(ix[i]) {
+    raw$GHG_Country[i] <- lutC$GHG_Countries[
+      lutC$Countries == raw$Country[i]]
+  }
+}
+raw <- raw %>%
+  select(-Country) %>%
+  group_by(GHG_Country) %>%
+  summarise_all(sum, na.rm = TRUE)
+
+## 5 - wegschrijven CSV-file in datalake/clean_data
 IMF <- raw
 write.csv2(IMF, fname_out_IMF, row.names = FALSE,
            fileEncoding = "UTF-8")
