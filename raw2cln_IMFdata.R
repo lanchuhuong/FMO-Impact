@@ -57,7 +57,7 @@ fname_out_IMF <- paste0(lutdir,"IMF_countries", "_", outdate,".csv")
 ## ----------------------------------------------------------------------- 
 ## 1 - inlezen bestand, remove unusable rows and columns
 raw <- read_tsv(fname_in_raw, locale = locale(encoding = 'ISO-8859-1'))
-raw <- raw[-921,]
+raw <- raw[-(nrow(raw)),]
 raw <- select(raw, c(3,4,7))
 
 ## 2 - spread subjects that are now in column 'Subject Descriptor"
@@ -74,6 +74,11 @@ raw$Population <- as.numeric(gsub(",", "", raw$Population))
 raw$Unemployment <- as.numeric(gsub(",", "", raw$Unemployment))
 raw$OilImport <- as.numeric(gsub(",", "", raw$OilImport))
 
+## 3a - remove outliers for inflation
+for (i in seq_along(raw$Country)) {
+  raw$Inflation[i] <- ifelse(raw$Inflation[i] > 10000, NA, raw$Inflation[i])
+}
+
 ## 4 - map countries to Countries_Mapped_Model using lutC
 lutC <- read_xlsx(fname_in_lutC, range = "Sheet1!A1:B221")
 ix <- raw$Country %in% lutC$Countries
@@ -87,8 +92,13 @@ for (i in seq_along(raw$Country)) {
 raw <- raw %>%
   select(-Country) %>%
   group_by(GHG_Country) %>%
-  summarise_all(sum, na.rm = TRUE)
-
+  summarise(GDP = sum(GDP, na.rm = TRUE),
+            Inflation = mean(Inflation, na.rm = TRUE),
+            Population = sum(Population, na.rm = TRUE), 
+            Unemployment = mean(Unemployment, na.rm = TRUE),
+            OilImport = sum(OilImport, na.rm = TRUE)) %>%
+  ungroup
+  
 ## 5 - wegschrijven CSV-file in datalake/clean_data
 IMF <- raw
 write.csv2(IMF, fname_out_IMF, row.names = FALSE,
