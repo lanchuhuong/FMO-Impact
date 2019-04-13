@@ -177,13 +177,11 @@ rm(rawsel)
 ## ----------------------------------------------------------------------- 
 ## --- PrivEq --------- READ PE-DATA OUT OF XLS INTO CSV -------------------
 ## ----------------------------------------------------------------------- 
-## 1 - inlezen bestand uit de url, in het geheugen
+## 1 - read file and skip empty rows and calculated columns
 raw <- read_xlsx(fname_in_raw, sheet = "Input_Data_FMO_PE",
                  skip = 7)
 raw <- raw[-1,]
 raw <- raw[!is.na(raw$`Customer ID`),]
-
-## 2 - select columns with source data
 raw <- raw[,c(2, c(238:383))]
 
 ## ----------------------------------------------------------------------- 
@@ -246,22 +244,12 @@ rm(lut)
 ## ----------------------------------------------------------------------- 
 ## 1 - select columns that contain data for regions @ contract PE
 rawsel <- raw[,c(1, 45:147)]
-
-## 2 - cleanup columns
-colnames(rawsel)[1] <- "Customer_ID"
-hdrs <- colnames(rawsel)[2:22]
-hdrs <- strsplit(hdrs, split = "__")
-hdrs <- lapply(hdrs, "[", 1)
-colnames(rawsel)[2:22] <- unlist(hdrs)
-rm(hdrs)
-
-## 3 - seperate investment data
 rawsel_sector <- rawsel[,c(1,2:26)]
 rawsel_outstanding <- rawsel[,c(1,28:52)]
 rawsel_country <- rawsel[,c(1,54:78)]
 rawsel_sme <- rawsel[,c(1,80:104)]
 
-## 4 - build df with private equity fund investments (impact at review)
+## 2 - build df with private equity fund investments (impact at review)
 ##     k = PEFInv rows, i = customerId, j = column-counter (1:25)
 PEFInv <- data.frame(Customer_ID = character(0),
                      sector = character(0),
