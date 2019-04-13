@@ -12,7 +12,7 @@
 ## INPUT PARAMETERS / OUTPUT
 ## ----------------------------------------------------------------------- 
 ## -- Input : Investment-percentages             (4 columns)            -- 
-## --       : Factors (PK, EF-scope1, EF-scope1) (23 cntrs / 19 sctrs)  -- 
+## --       : Factors (PK, EF-scope1, EF-scope1) (23 cntrs / 20 sctrs)  -- 
 ## -- LUT   : Map_CntrReg                        (2 columns)            -- 
 ## -- Output: Consolidated factors (PK,EF1,EF2)  (4 columns)            -- 
 ## ----------------------------------------------------------------------- 
@@ -23,21 +23,9 @@ uS002_PE_ConsolidateFactors <- function(invperc, factors, countrymap) {
   require(tidyverse)
   require(stringr)
   ## 1 - Read in parameters ----------------------------------------------
-  test <- FALSE
-  if(!test) {
-    IP <- invperc
-    CF <- factors
-    lutC <- countrymap
-  } 
-  if(test) {
-    IP <- read.csv2(fname_in_PEFInvPct, stringsAsFactors = FALSE, 
-                      fileEncoding = "UTF-8")
-    IP <- PEFInvPct
-    CF <- read.csv2(fname_in_CpIF, stringsAsFactors = FALSE,
-                      fileEncoding = "UTF-8")
-    lutC <- read.csv2(fname_in_lutC, stringsAsFactors = FALSE,
-                      fileEncoding = "UTF-8")
-  }
+  IP <- invperc
+  CF <- factors
+  lutC <- countrymap
 
   ## 2 - complete the PEFInvPct dataframe with NA's ----------------------
   cntr <- str_sort(unique(lutC$Model_Region))
@@ -73,8 +61,8 @@ uS002_PE_ConsolidateFactors <- function(invperc, factors, countrymap) {
   IPcpl <- IPcpl[,c(1:18,20,19,21:24)]
   
   ## 3 - Check matrix multiplication (rows1 = cols2) --------------------------
-  Error <- !identical(colnames(IPcpl)[-1], CF$GHG_country)
-  ## Throw error if not exactly the same
+  ReadyToGo <- identical(colnames(IPcpl)[-1], CF$GHG_Country)
+  ## Only Not ReadyTo Go if exactly the same (count and entries)
 
   ## 4 - Setup matrix (countries/sectors) -------------------------------------
   Mtx1 <- as.matrix(IPcpl[,-1])
@@ -88,7 +76,7 @@ uS002_PE_ConsolidateFactors <- function(invperc, factors, countrymap) {
   y <- x - 1
   Seq <- c(x, 1:y)
   Out <- Out[, Seq]
-  
+
   ## 6 - Output data frame (cust/sectors) ------------------------------------
   PEFConsPKF <- Out
   return(Out)
