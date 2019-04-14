@@ -115,6 +115,7 @@ rawsel$Strat_Sector[is.na(rawsel$Strat_Sector)] <- "unknown"
 
 ## 3 - Write file
 custG <- rawsel
+custG$Net_portfolio <- as.numeric(custG$Net_portfolio)
 write.csv2(custG, fname_out_custG, row.names = FALSE,
            fileEncoding = "UTF-8")
 rm(rawsel)
@@ -135,6 +136,13 @@ colnames(rawsel) <- c("Customer_ID", "Non_current_assets", "Revenues",
 
 ## 3 - Write file
 ICCp <- rawsel
+ICCp$Non_current_assets <- as.numeric(ICCp$Non_current_assets)
+ICCp$Revenues <- as.numeric(ICCp$Revenues)
+ICCp$GHG_Scope_not_specified <- as.numeric(ICCp$GHG_Scope_not_specified)
+ICCp$GHG_Scope1 <- as.numeric(ICCp$GHG_Scope1)
+ICCp$GHG_Scope2 <- as.numeric(ICCp$GHG_Scope2)
+ICCp$GHG_Scope3 <- as.numeric(ICCp$GHG_Scope3)
+
 write.csv2(ICCp, fname_out_ICCp, row.names = FALSE,
            fileEncoding = "UTF-8")
 rm(rawsel)
@@ -154,6 +162,12 @@ colnames(rawsel) <- c("Customer_ID", "Project_size",
 
 ## 3 - Write file
 ICPF <- rawsel
+ICPF$Project_size <- as.numeric(ICPF$Project_size)
+ICPF$GHG_Scope_not_specified <- as.numeric(ICPF$GHG_Scope_not_specified)
+ICPF$GHG_Scope1 <- as.numeric(ICPF$GHG_Scope1)
+ICPF$GHG_Scope2 <- as.numeric(ICPF$GHG_Scope2)
+ICPF$GHG_Scope3 <- as.numeric(ICPF$GHG_Scope3)
+
 write.csv2(ICPF, fname_out_ICPF, row.names = FALSE,
            fileEncoding = "UTF-8")
 rm(rawsel)
@@ -172,6 +186,9 @@ colnames(rawsel)[1:4] <- c("Customer_ID", "Total_assets",
 
 ## 3 - Write file
 ICFI <- rawsel
+ICFI$Total_assets <- as.numeric(ICFI$Total_assets)
+ICFI$Agriculture <- as.numeric(ICFI$Agriculture)
+
 write.csv2(ICFI, fname_out_ICFI, row.names = FALSE,
            fileEncoding = "UTF-8")
 rm(rawsel)
@@ -202,6 +219,9 @@ colnames(rawsel)[20:22] <- c("MFI", "SME", "CORP")
 
 ## 3 - Write file
 ICPE <- rawsel
+ICPE$Agriculture <- as.numeric(ICPE$Agriculture)
+ICPE$MFI <- as.numeric(ICPE$MFI)
+
 write.csv2(ICPE, fname_out_ICPE, row.names = FALSE,
            fileEncoding = "UTF-8")
 rm(rawsel)
@@ -236,6 +256,7 @@ for (i in seq_along(PEFReg$Customer_ID)) {
 }
 
 ## 5 - Write file
+PEFReg$AssetPerc <- as.numeric(PEFReg$AssetPerc)
 write.csv2(PEFReg, fname_out_PEFReg, row.names = FALSE,
            fileEncoding = "UTF-8")
 rm(rawsel)
