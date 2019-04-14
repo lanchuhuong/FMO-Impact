@@ -66,7 +66,7 @@ uS001_PE_InvPct <- function(investments, contracted, countrymap) {
 
   ## Over to regional asset percentages at time of contract
   ## 6 - Remove empty asset-percentages for Cust/Region-combi's and add status
-  PEFReg <- PEFReg[!is.na(PEFReg$AssetPerc),]
+  # PEFReg <- PEFReg[!is.na(PEFReg$AssetPerc),]
   PEFReg$AssetPerc <- as.numeric(PEFReg$AssetPerc)
   PEFRegPct <- PEFReg %>%
     add_column(status = "at_contract")
