@@ -33,22 +33,22 @@ uS004_PE_ConsolidateSize <- function(investments, contracted) {
 
   ## 3 - calculate customer/sme totals ----------------------------------------
   PEFInvSme <- PEFInv %>%
-    group_by(Customer_ID, sme) %>%
-    filter(sme == "Yes") %>%
-    summarise(sme_total = sum(outstanding)) %>%
+    group_by(Customer_ID) %>%
+    summarise(sme_total = sum(outstanding[sme == "Yes"])) %>%
     mutate(cust_total = 0) %>%
     ungroup
 
   ## 4 - Add column cust totals -----------------------------------------------
   for (i in c(1:nrow(PEFInvSme))) {
     curcust <- as.character(PEFInvSme[i,1])
-    PEFInvSme[i,4] <- PEFInvCust$cust_total[PEFInvCust$Customer_ID == curcust]
+    PEFInvSme$cust_total[i] <- PEFInvCust$cust_total[
+      PEFInvCust$Customer_ID == curcust]
   }   
 
   ## 5 - Calculate percentage and add status ----------------------------------
   PEFInvSme <- mutate(PEFInvSme, msme = sme_total / cust_total)
   PEFInvSme <- mutate(PEFInvSme, status = "at_review")
-  PEFInvPct <- select(PEFInvSme, -sme_total, -cust_total, -sme)
+  PEFInvPct <- select(PEFInvSme, -sme_total, -cust_total)
   rm(PEFInvSme)
 
   ## 6 - Transform contracted and add status ----------------------------------
@@ -59,8 +59,9 @@ uS004_PE_ConsolidateSize <- function(investments, contracted) {
   PEFCtrPct$SME[which(is.na(PEFCtrPct$SME))] <- 0
   PEFCtrPct <- PEFCtrPct %>%
     mutate(MFI = as.numeric(MFI)) %>%
-    mutate(msme = (ifelse(is.na(Agriculture),NA,(SME + MFI)))) %>%
-    select(1,23) %>%
+    mutate(msme = (ifelse(is.na(Agriculture), NA, (SME + MFI)))) %>%
+    select(Customer_ID,msme) %>%
+    filter(!is.na(msme)) %>%
     add_column(status = "at_contract")
 
   ## 7 - Remove contracted percentages if actual investments are present ------
