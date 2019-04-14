@@ -86,13 +86,13 @@ qlkdir <- "datalake/infoproducts/Qlik_cubes/"
 sopdir <- "datalake/infoproducts/sopact_sheets/"
 
 ## Setup times and version parameters
-indate = "2019-03-31"
-lutdate = "2019-03-31"
-outdate = "2019-03-31"
+indate = "2019-04-11"
+lutdate = "2019-04-11"
+outdate = "2019-04-11"
 version <- ""
 
 ## Setup filenames
-fname_in_custG <- paste0(clndir,"CustFac_General", "_", outdate,".csv")
+fname_in_custG <- paste0(clndir,"Cust_General", "_", outdate,".csv")
 fname_in_ICCp <- paste0(clndir,"IC_Corporate", "_", outdate,".csv")
 fname_in_ICPF <- paste0(clndir,"IC_ProjFin", "_", outdate,".csv")
 fname_in_ICFI <- paste0(clndir,"IC_FinInst", "_", outdate,".csv")
@@ -130,8 +130,8 @@ fname_out_AE <- paste0(inddir,"KPI_aGHG", "_", outdate,".csv")
 
 ```{r 1.PEF-InvPct, echo=FALSE}
 custG <- read.csv2(fname_in_custG, stringsAsFactors = FALSE,
-                    fileEncoding = "UTF-8")
-table(custG$IC_type)
+                    fileEncoding = "UTF-8", check.names = FALSE)
+table(custG$IC_Type)
 ```
 
 ## Calculate Absolute Emissions
@@ -142,20 +142,23 @@ Calculate absolute emissions (Scope 1) for each Corporate customer.
 
 ```{r 2.AbsEms-Corp1, echo=TRUE}
 custG <- read.csv2(fname_in_custG, stringsAsFactors = FALSE,
-                    fileEncoding = "UTF-8")
-custG <- custG[custG$IC_type == "corporate",]
+                    fileEncoding = "UTF-8", check.names = FALSE)
+custG <- custG[custG$IC_Type == "corporate",]
 ICCp <- read.csv2(fname_in_ICCp, stringsAsFactors = FALSE,
-                    fileEncoding = "UTF-8")
+                    fileEncoding = "UTF-8", check.names = FALSE)
 EcEF <- read.csv2(fname_in_EcEF1, stringsAsFactors = FALSE,
-                    fileEncoding = "UTF-8")
+                    fileEncoding = "UTF-8", check.names = FALSE)
+CpIF <- read.csv2(fname_in_CpIF, stringsAsFactors = FALSE,
+                    fileEncoding = "UTF-8", check.names = FALSE)
 lutC <- read.csv2(fname_in_lutC, stringsAsFactors = FALSE,
-                    fileEncoding = "UTF-8")
+                    fileEncoding = "UTF-8", check.names = FALSE)
 lutS <- read.csv2(fname_in_lutS, stringsAsFactors = FALSE,
-                    fileEncoding = "UTF-8")
+                    fileEncoding = "UTF-8", check.names = FALSE)
 
 AE_Corp1 <- uS005_AbsEms_Corp(impactcard = ICCp,
                              customers = custG,
                              factors = EcEF,
+                             PKF = CpIF,
                              scope = 1,
                              countrymap = lutC,
                              sectormap = lutS)
@@ -171,11 +174,12 @@ Calculate absolute emissions (Scope 2) for each Corporate customer.
 
 ```{r 3.AbsEms-Corp2, echo=FALSE}
 EcEF <- read.csv2(fname_in_EcEF2, stringsAsFactors = FALSE,
-                    fileEncoding = "UTF-8")
+                    fileEncoding = "UTF-8", check.names = FALSE)
 
 AE_Corp2 <- uS005_AbsEms_Corp(impactcard = ICCp,
                              customers = custG,
                              factors = EcEF,
+                             PKF = CpIF,
                              scope = 2,
                              countrymap = lutC,
                              sectormap = lutS)
@@ -191,12 +195,12 @@ Calculate absolute emissions (Scope 1) for each project finance customer.
 
 ```{r 4.AbsEms-PF1, echo=FALSE}
 custG <- read.csv2(fname_in_custG, stringsAsFactors = FALSE,
-                    fileEncoding = "UTF-8")
-custG <- custG[custG$IC_type == "project finance",]
+                    fileEncoding = "UTF-8", check.names = FALSE)
+custG <- custG[custG$IC_Type == "project finance",]
 ICPF <- read.csv2(fname_in_ICPF, stringsAsFactors = FALSE,
-                    fileEncoding = "UTF-8")
+                    fileEncoding = "UTF-8", check.names = FALSE)
 EcEF <- read.csv2(fname_in_EcEF1, stringsAsFactors = FALSE,
-                    fileEncoding = "UTF-8")
+                    fileEncoding = "UTF-8", check.names = FALSE)
 
 AE_PrFin1 <- uS006_AbsEms_PrFin(impactcard = ICPF,
                              customers = custG,
@@ -218,7 +222,7 @@ Calculate absolute emissions (Scope 2) for each project finance customer.
 
 ```{r 5.AbsEms-PF2, echo=FALSE}
 EcEF <- read.csv2(fname_in_EcEF2, stringsAsFactors = FALSE,
-                    fileEncoding = "UTF-8")
+                    fileEncoding = "UTF-8", check.names = FALSE)
 
 AE_PrFin2 <- uS006_AbsEms_PrFin(impactcard = ICPF,
                              customers = custG,
@@ -239,18 +243,22 @@ Calculate absolute emissions (scope 1) for each Private Equity Fund customer.
 
 ```{r 6.AbsEms-PE1, echo=FALSE}
 custG <- read.csv2(fname_in_custG, stringsAsFactors = FALSE,
-                   fileEncoding = "UTF-8")
-custG <- custG[custG$IC_type == "private equity fund",]
+                   fileEncoding = "UTF-8", check.names = FALSE)
+custG <- custG[custG$IC_Type == "private equity fund",]
 lutICS <- read.csv2(fname_in_lutICS, stringsAsFactors = FALSE,
-                   fileEncoding = "UTF-8")
+                   fileEncoding = "UTF-8", check.names = FALSE)
 PEFConsEC1fctrs <- read.csv2(fname_in_PEFConsEC1fctrs, 
-                           stringsAsFactors = FALSE, fileEncoding = "UTF-8")
+                           stringsAsFactors = FALSE, fileEncoding = "UTF-8",
+                           check.names = FALSE)
 PEFConsPKfctrs <- read.csv2(fname_in_PEFConsPKfctrs, 
-                           stringsAsFactors = FALSE, fileEncoding = "UTF-8")
+                           stringsAsFactors = FALSE, fileEncoding = "UTF-8",
+                           check.names = FALSE)
 PEFConsSize <- read.csv2(fname_in_PEFConsSize, 
-                           stringsAsFactors = FALSE, fileEncoding = "UTF-8")
+                           stringsAsFactors = FALSE, fileEncoding = "UTF-8",
+                           check.names = FALSE)
 PEFConsSctrs <- read.csv2(fname_in_PEFConsSctrs, 
-                           stringsAsFactors = FALSE, fileEncoding = "UTF-8")
+                           stringsAsFactors = FALSE, fileEncoding = "UTF-8",
+                           check.names = FALSE)
 
 AE_PrEq1 <- uS007_AbsEms_PrEq(customers = custG,
                             ecfactors = PEFConsEC1fctrs,
@@ -272,7 +280,8 @@ Calculate absolute emissions (scope 2) for each Private Equity Fund customer.
 
 ```{r 6.AbsEms-PE2, echo=FALSE}
 PEFConsEC2fctrs <- read.csv2(fname_in_PEFConsEC2fctrs, 
-                           stringsAsFactors = FALSE, fileEncoding = "UTF-8")
+                           stringsAsFactors = FALSE, fileEncoding = "UTF-8",
+                           check.names = FALSE)
 
 AE_PrEq2 <- uS007_AbsEms_PrEq(customers = custG,
                             ecfactors = PEFConsEC2fctrs,
@@ -295,18 +304,18 @@ Calculate absolute emissions (scope 1) for each Financial Institution.
 
 ```{r 7.AbsEms-FI1, echo=FALSE}
 custG <- read.csv2(fname_in_custG, stringsAsFactors = FALSE,
-                   fileEncoding = "UTF-8")
-custG <- custG[custG$IC_type == "financial institution",]
+                   fileEncoding = "UTF-8", check.names = FALSE)
+custG <- custG[custG$IC_Type == "financial institution",]
 EcEF <- read.csv2(fname_in_EcEF1, stringsAsFactors = FALSE,
-                                  fileEncoding = "UTF-8")
+                                  fileEncoding = "UTF-8", check.names = FALSE)
 CpIF <- read.csv2(fname_in_CpIF, stringsAsFactors = FALSE,
-                                 fileEncoding = "UTF-8")
+                                 fileEncoding = "UTF-8", check.names = FALSE)
 ICFI <- read.csv2(fname_in_ICFI, stringsAsFactors = FALSE, 
-                                 fileEncoding = "UTF-8")
+                                 fileEncoding = "UTF-8", check.names = FALSE)
 lutICS <- read.csv2(fname_in_lutICS, stringsAsFactors = FALSE,
-                                     fileEncoding = "UTF-8")
+                                     fileEncoding = "UTF-8", check.names = FALSE)
 lutC <- read.csv2(fname_in_lutC, stringsAsFactors = FALSE,
-                                     fileEncoding = "UTF-8")
+                                     fileEncoding = "UTF-8", check.names = FALSE)
 
 AE_FI1 <- uS008_AbsEms_FI(customers = custG,
                             ecfactors = EcEF,
@@ -329,10 +338,10 @@ Calculate absolute emissions (scope 2) for each Financial Institution.
 
 ```{r 8.AbsEms-FI2, echo=FALSE}
 custG <- read.csv2(fname_in_custG, stringsAsFactors = FALSE,
-                   fileEncoding = "UTF-8")
+                   fileEncoding = "UTF-8", check.names = FALSE)
 custG <- custG[custG$IC_type == "financial institution",]
 EcEF <- read.csv2(fname_in_EcEF2, stringsAsFactors = FALSE,
-                                  fileEncoding = "UTF-8")
+                                  fileEncoding = "UTF-8", check.names = FALSE)
 
 AE_FI2 <- uS008_AbsEms_FI(customers = custG,
                             ecfactors = EcEF,
@@ -356,7 +365,7 @@ Combine all absolute emissions datapoints and for each customer add the Net Port
 
 ```{r 9.Results 1, echo=FALSE}
 custG <- read.csv2(fname_in_custG, stringsAsFactors = FALSE,
-                   fileEncoding = "UTF-8")
+                   fileEncoding = "UTF-8", check.names = FALSE)
 
 colnames(AE_Corp1) <- paste0(colnames(AE_Corp1),"_1")
 colnames(AE_Corp2) <- paste0(colnames(AE_Corp2),"_2")
