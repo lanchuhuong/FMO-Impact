@@ -439,6 +439,8 @@ rm(raw)
 raw <- read_xlsx(fname_in_raw, range = "Lists!B5:C26")
 colnames(raw)[1] <- "Sector"
 colnames(raw)[2] <- "Sector_modeled"
+raw$Sector_modeled[raw$Sector_modeled == "Mining & Quarrying"] <-
+  "Mining & quarrying"  ## temp fix voor fout in Excel
 Map_SctrMdl <- raw
 write.csv2(Map_SctrMdl, fname_out_Map_SctrMdl, row.names = FALSE,
            fileEncoding = "UTF-8")
@@ -450,6 +452,8 @@ rm(raw)
 raw <- read_xlsx(fname_in_raw, range = "Lists!E5:F23")
 colnames(raw)[1] <- "Sector"
 colnames(raw)[2] <- "Sector_modeled"
+raw$Sector_modeled[raw$Sector_modeled == "Mining & Quarrying"] <-
+  "Mining & quarrying"  ## temp fix voor fout in Excel
 Map_ICSctrMdl <- raw
 write.csv2(Map_ICSctrMdl, fname_out_Map_ICSctrMdl, row.names = FALSE,
            fileEncoding = "UTF-8")
