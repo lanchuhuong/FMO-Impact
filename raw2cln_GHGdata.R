@@ -110,6 +110,8 @@ rawsel$IC_Type <- sub(" corporate", "corporate", rawsel$IC_Type)
 rawsel$IC_Type <- sub(" project finance", "project finance", rawsel$IC_Type)
 rawsel$IC_Type <- tolower(rawsel$IC_Type)
 rawsel$Strat_Sector <- sub(" $", "", rawsel$Strat_Sector)
+rawsel$IC_Type[is.na(rawsel$IC_Type)] <- "unknown"
+rawsel$Strat_Sector[is.na(rawsel$Strat_Sector)] <- "unknown"
 
 ## 3 - Write file
 custG <- rawsel
