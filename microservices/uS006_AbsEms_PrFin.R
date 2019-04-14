@@ -45,11 +45,11 @@ uS006_AbsEms_PrFin <- function(impactcard, customers, factors, scope,
     curcust <- custG$Customer_ID[i]
     dfAE$Customer_ID[i] <- curcust
     if(scope == 1) {
-      nocando <- is.na(ICPF$GHG_Scope_1_Current[ICPF$Customer_ID == curcust]) |
+      nocando <- is.na(ICPF$GHG_Scope1[ICPF$Customer_ID == curcust]) |
         is.na(ICPF$Project_size[ICPF$Customer_ID == curcust])
       if(!nocando){
-        AbsEms <- (ICPF$GHG_Scope_1_Current[ICPF$Customer_ID == curcust] *
-                  custG$Net_portfolio[i] /
+        AbsEms <- (ICPF$GHG_Scope1[ICPF$Customer_ID == curcust] *
+                  max(custG$Net_portfolio[i],0) /
                   ICPF$Project_size[ICPF$Customer_ID == curcust])
         AbsEms <- ifelse(AbsEms < 0, 0, AbsEms)
         dfAE$method[i] <- "primary"
@@ -57,12 +57,13 @@ uS006_AbsEms_PrFin <- function(impactcard, customers, factors, scope,
       }
     }
     if(scope == 2) {
-      nocando <- is.na(ICPF$GHG_Scope_2_Current[ICPF$Customer_ID == curcust]) |
+      ICPF$GHG_Scope2 <- as.numeric(ICPF$GHG_Scope2)
+      nocando <- is.na(ICPF$GHG_Scope2[ICPF$Customer_ID == curcust]) |
         is.na(ICPF$Project_size[ICPF$Customer_ID == curcust])
       if(!nocando){
-        AbsEms <- (ICPF$GHG_Scope_2_Current[ICPF$Customer_ID == curcust] *
-                  custG$Net_portfolio[i] /
-                  ICPF$Project_size[ICPF$Customer_ID == curcust])
+        AbsEms <- (ICPF$GHG_Scope2[ICPF$Customer_ID == curcust] *
+                     max(custG$Net_portfolio[i],0) /
+                     ICPF$Project_size[ICPF$Customer_ID == curcust])
         AbsEms <- ifelse(AbsEms < 0, 0, AbsEms)
         dfAE$method[i] <- "primary"
         dfAE$abs_ems[i] <- AbsEms
@@ -70,29 +71,22 @@ uS006_AbsEms_PrFin <- function(impactcard, customers, factors, scope,
     }
   } 
   
-  ## 3 - get list of comparable EcEF-columnheaders (temporary) ---------------
-  sectorheaders <- gsub("_"," ", colnames(EcEF))
-  sectorheaders[12] <- "Mining & Quarrying"
-  sectorheaders[18] <- "50% business services 50% construction"
-  sectorheaders[19] <- "Central Bank Breakdown"
-  
-  ## 4 - temp-fix in Client-sectors in custG (ACBS/FIA) ----------------------
-  custG$Client_sector <- gsub("Agri Pro","Agri pro", custG$Client_sector)
-  
-  ## 5 - calculate modeled absolute emissions if primary not possible ---------
+  ## 4 - calculate modeled absolute emissions if primary not possible ---------
   for(i in seq_along(custG$Customer_ID)){
     curcust <- custG$Customer_ID[i]
+    curcountry <- custG$Country[i]
+    cursector <- custG$Client_sector[i]
+    GHG_Country <- lutC$Model_Region[toupper(lutC$Country) == curcountry]
+    GHG_Sector <- lutS$Sector_modeled[tolower(lutS$Sector) == tolower(cursector)]
+    SctIx <- as.numeric(which(colnames(EcEF) %in% GHG_Sector))
     nocando <- (is.na(custG$Net_portfolio[i]) |
                   !is.na(dfAE$method[dfAE$Customer_ID == curcust]))
     if(!nocando){
-      GHG_Country <- lutC$Model_Region[lutC$Country == custG$Country[i]]
-      GHG_Sector <- lutS$Sector_modeled[lutS$Sector == custG$Client_sector[i]]
-      SctIx <- as.numeric(which(sectorheaders %in% GHG_Sector))
-      AbsEms <- (EcEF[which(EcEF$GHG_country == GHG_Country), SctIx] *
+      AbsEms <- (EcEF[which(EcEF$GHG_Country == GHG_Country), SctIx] *
                    custG$Net_portfolio[i] /
                    10^6)
       AbsEms <- ifelse(AbsEms < 0, 0, AbsEms)
-      dfAE$method[dfAE$Customer_ID == curcust] <- "modeled"
+      dfAE$method[dfAE$Customer_ID == curcust] <- "nodata"
       dfAE$abs_ems[dfAE$Customer_ID == curcust] <- AbsEms
     }
   } 
