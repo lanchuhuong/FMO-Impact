@@ -47,75 +47,74 @@ AE <- read.csv2(fname_in_AE,
 AE <- AE[!is.na(AE$Ems),]
 hist(AE$Ems)
 
-## 2 - generate emissions previous years, considering (1.5C pathway): 
-## current emission (2013) = 33.000 MtCO2e/year
-## targeted emission (2025) = 23.000 MtCO2e/year
-## targeted yearly reduction = 10.000/13 = 770 MtCO2e
-## which is approx. 3% CO2e reduction each year
+## 2 - read pathways and allowances over the years 2018 to 2025
+PWA <- read.csv2(fname_in_PWA,
+                 stringsAsFactors = FALSE,
+                 fileEncoding = "UTF-8")
+colnames(PWA) <- gsub("X", "", colnames(PWA))
+pw15 <- PWA[5,c(4:11)]
+pw15 <- gather(pw15, `2018`, `2019`,`2020`,`2021`,`2022`,
+               `2023`,`2024`,`2025`,
+               key = Year, value = ems)
+pw15$Year <- as.numeric(pw15$Year)
+pw20 <- PWA[6,c(4:11)]
+pw20 <- gather(pw20, `2018`, `2019`,`2020`,`2021`,`2022`,
+               `2023`,`2024`,`2025`,
+               key = Year, value = ems)
+pw20$Year <- as.numeric(pw20$Year)
+alw15 <- PWA[3,c(4:11)]
+alw15 <- gather(alw15, `2018`, `2019`,`2020`,`2021`,`2022`,
+                `2023`,`2024`,`2025`,
+                key = Year, value = ems)
+alw15$Year <- as.numeric(alw15$Year)
+alw20 <- PWA[4,c(4:11)]
+alw20 <- gather(alw20, `2018`, `2019`,`2020`,`2021`,`2022`,
+                `2023`,`2024`,`2025`,
+                key = Year, value = ems)
+alw20$Year <- as.numeric(alw20$Year)
+
+## 3 - shift means to 3.38 per 2018 by using a factor
+##     to simulate a sum with a confidence interval
+oldmean <- mean(AE$Ems, na.rm = TRUE)
+newtot <- 3.37862339163655
+shift <- newtot/oldmean
+AEs <- mutate(AE, Ems = Ems * shift)
+
+## 4 - generate emissions previous years, considering (1.5C pathway): 
 perc <- 1.5
 peru <- perc/100
 sdev <- abs(peru)
-AEyr <- AE %>%
+AEyr <- AEs %>%
   select(Ems) %>%
   rename(Yr_2018 = Ems) %>%
   mutate(Yr_2017 = (Yr_2018 * (1 + rnorm(1, mean=peru, sd=sdev)))) %>%
   mutate(Yr_2016 = (Yr_2017 * (1 + rnorm(1, mean=peru, sd=sdev)))) %>%
   mutate(Yr_2015 = (Yr_2016 * (1 + rnorm(1, mean=peru, sd=sdev))))
 check_4 <- round(100-(sum(AEyr$Yr_2015)/sum(AEyr$Yr_2018)*100), 2)
+check_4
 
-## 3 - gathering the resulting emissions
+## 5 - gathering the resulting emissions
 AEg <- AEyr
 colnames(AEg) <- gsub("Yr_", "", colnames(AEg))
 AEg <- gather(AEg, `2018`, `2017`,`2016`,`2015`,
               key = "Year", value = "ems")
 AEg$Year <- as.numeric(AEg$Year)
 
-## 4 - shift means to 3.38 per 2018 by using a factor
-##     to simulate a sum with a confidence interval
-AEg2018 <- AEg[AEg$Year == 2018,]
-oldmean <- mean(AEg2018$ems)
-newtot <- 3.37862339163655
-shift <- newtot/oldmean
-AEgc <- mutate(AEg, ems = ems * shift)
 
-## 5 - read pathways and allowances over the years 2018 to 2025
-PWA <- read.csv2(fname_in_PWA,
-                stringsAsFactors = FALSE,
-                fileEncoding = "UTF-8")
-colnames(PWA) <- gsub("X", "", colnames(PWA))
-
-pw15 <- PWA[5,c(4:11)]
-pw15 <- gather(pw15, `2018`, `2019`,`2020`,`2021`,`2022`,
-               `2023`,`2024`,`2025`,
-               key = Year, value = ems)
-pw15$Year <- as.numeric(pw15$Year)
-
-pw20 <- PWA[6,c(4:11)]
-pw20 <- gather(pw20, `2018`, `2019`,`2020`,`2021`,`2022`,
-               `2023`,`2024`,`2025`,
-               key = Year, value = ems)
-pw20$Year <- as.numeric(pw20$Year)
-
-alw15 <- PWA[3,c(4:11)]
-alw15 <- gather(alw15, `2018`, `2019`,`2020`,`2021`,`2022`,
-                `2023`,`2024`,`2025`,
-                key = Year, value = ems)
-alw15$Year <- as.numeric(alw15$Year)
-
-alw20 <- PWA[4,c(4:11)]
-alw20 <- gather(alw20, `2018`, `2019`,`2020`,`2021`,`2022`,
-               `2023`,`2024`,`2025`,
-               key = Year, value = ems)
-alw20$Year <- as.numeric(alw20$Year)
-
-## 3 - plotting the emissions and adding the allowances
-g <- ggplot(data=AEgc, aes(x=Year, y=ems)) +
+## 6 - plotting the emissions and adding the allowances
+g <- ggplot(data=AEg, aes(x=Year, y=ems)) +
+  ggtitle("Projected GHG emissions on FMO pathway") +
+  xlab("Year") + ylab("Absolute emissions (BtCO2e/yr)") +
+  theme(
+    plot.title = element_text(color="darkgray", size=14, face="bold", hjust = 0.5),
+    axis.title.x = element_text(color="#993333", size=11),
+    axis.title.y = element_text(color="#993333", size=11)) +
   scale_x_continuous(breaks = seq(2015,2025,1),
                      lim = c(2015,2025)) +
-  coord_cartesian(ylim = c(2,4)) +
+  coord_cartesian(ylim = c(2.5,4)) +
   geom_point(size=0.2 , color="Blue") +
-  stat_smooth(method = "lm", formula = y ~ x, color="Darkred",
-              fullrange = TRUE) +
+  stat_smooth(method = "lm", formula = y ~ x, color="Blue",
+              fullrange = TRUE, level = 0.03) +
   geom_line(data=pw15, aes(x=Year, y=ems), color="Yellow") +
   geom_line(data=pw20, aes(x=Year, y=ems), color="Brown")
 g
