@@ -30,19 +30,19 @@ IN/OUTPUT
 
 | In/Out | Filename   |  Size | Description |
 |:------|:------------------|----:|:------------------------------|
-| Input | CustFac_General.csv | 247/18 | |
-| Input | IC_Corporate.csv | 48/7 | |
-| Input | IC_ProjFin.csv | 59/6 | |
-| Input | IC_FinInst.csv | 101/23 | |
-| Input | IC_PrivEq.csv | 39/43 | |
-| Input | PEF_Investments.csv | 117/5 | |
-| Input | PEF_RegionPerc.csv | 18/3 | |
-| Input | Fctr_EcEmis1.csv | 23/19 | |
-| Input | Fctr_EcEmis2.csv | 23/19 | |
-| Input | Fctr_CapInt.csv | 23/19 | |
+| Input | Cust_General.csv | 759/10 | |
+| Input | IC_Corporate.csv | 133/7 | |
+| Input | IC_ProjFin.csv | 151/6 | |
+| Input | IC_FinInst.csv | 226/22 | |
+| Input | IC_PrivEq.csv | 184/22 | |
+| Input | PEF_Investments.csv | 939/5 | |
+| Input | PEF_RegionPerc.csv | 3864/3 | |
+| Input | Fctr_EcEmis1.csv | 23/20 | |
+| Input | Fctr_EcEmis2.csv | 23/20 | |
+| Input | Fctr_CapInt.csv | 23/20 | |
 | Input | Fctr_CBbrkdwn.csv | 23/17 | |
 | Input | Fctr_Out2Elec.csv | 23/17 | |
-| LUT | MAP_CntrReg.csv | 87/2 | |
+| LUT | MAP_CntrReg.csv | 127/2 | |
 | LUT | MAP_SctrMdl.csv | 21/2 | |
 | LUT | MAP_ICSctrMdl.csv | 18/2 | |
 | Output | PEF_InvPct | 18/2 | |
@@ -77,19 +77,19 @@ sopdir <- "datalake/infoproducts/sopact_sheets/"
 
 ## Setup parameters
 version <- ""
-indate = "2019-03-31"
-lutdate = "2019-03-31"
-outdate = "2019-03-31"
+indate = "2019-04-11"
+lutdate = "2019-04-11"
+outdate = "2019-04-11"
 
 ## Setup filenames
-fname_in_custG <- paste0(clndir,"CustFac_General", "_", outdate,".csv")
-fname_in_ICPE <- paste0(clndir,"IC_PrivEq", "_", outdate,".csv")
-fname_in_PEFInv <- paste0(clndir,"PEF_Investments", "_", outdate,".csv")
-fname_in_PEFReg <- paste0(clndir,"PEF_RegionPerc", "_", outdate,".csv")
-fname_in_EcEF1 <- paste0(clndir,"Fctr_EcEmis1", "_", outdate,".csv")
-fname_in_EcEF2 <- paste0(clndir,"Fctr_EcEmis2", "_", outdate,".csv")
-fname_in_CpIF <- paste0(clndir,"Fctr_CapInt", "_", outdate,".csv")
-fname_in_lutC <- paste0(lutdir,"Map_CntrReg", "_", outdate,".csv")
+fname_in_custG <- paste0(clndir,"Cust_General", "_", indate,".csv")
+fname_in_ICPE <- paste0(clndir,"IC_PrivEq", "_", indate,".csv")
+fname_in_PEFInv <- paste0(clndir,"PEF_Investments", "_", indate,".csv")
+fname_in_PEFReg <- paste0(clndir,"PEF_RegionPerc", "_", indate,".csv")
+fname_in_EcEF1 <- paste0(clndir,"Fctr_EcEmis1", "_", indate,".csv")
+fname_in_EcEF2 <- paste0(clndir,"Fctr_EcEmis2", "_", indate,".csv")
+fname_in_CpIF <- paste0(clndir,"Fctr_CapInt", "_", indate,".csv")
+fname_in_lutC <- paste0(lutdir,"Map_CntrReg", "_", indate,".csv")
 fname_out_PEFInvPct <- paste0(dptdir,"PEF_InvPct", "_", outdate,".csv")
 fname_out_PEFConsPKfctrs <- paste0(dptdir,"PEF_ConsPKF", "_", outdate,".csv")
 fname_out_PEFConsEC1fctrs <- paste0(dptdir,"PEF_ConsECF1", "_", outdate,".csv")
@@ -106,7 +106,7 @@ fname_out_PEFConsSctrs <- paste0(dptdir,"PEF_ConsSctrs", "_", outdate,".csv")
 ```{r 1.PEF-CustList, ECHO = TRUE}
 custG <- read.csv2(fname_in_custG, stringsAsFactors = FALSE,
                     fileEncoding = "UTF-8")
-table(custG$IC_type)
+table(custG$IC_Type)
 ```
 
 
@@ -132,11 +132,11 @@ head(PEFInvPct, 5)
 ```
 
 ### Consolidating PK-Factors (Cap.Intensity)
-Consolidate Capital Intensity Factors (GHG-country/sector) per customer
+Consolidate Capital Intensity Factors (GHG-country -> sector) per customer
 
 ```{r 2.PEF-ConsPKFct, ECHO = TRUE}
 CpIF <- read.csv2(fname_in_CpIF, stringsAsFactors = FALSE,
-                    fileEncoding = "UTF-8")
+                    fileEncoding = "UTF-8", check.names = FALSE)
 PEFConsPKF <- uS002_PE_ConsolidateFactors(invperc = PEFInvPct,
                              factors = CpIF,
                              countrymap <- lutC)
@@ -150,7 +150,7 @@ Consolidate emission fators (scope 2) per customer
 
 ```{r 3.PEF-ConsEc2Fct, ECHO = TRUE}
 EcEF2 <- read.csv2(fname_in_EcEF2, stringsAsFactors = FALSE,
-                    fileEncoding = "UTF-8")
+                    fileEncoding = "UTF-8", check.names = FALSE)
 PEFConsECF2 <- uS002_PE_ConsolidateFactors(invperc = PEFInvPct,
                              factors = EcEF2,
                              countrymap <- lutC)
@@ -164,7 +164,7 @@ Consolidate emission fators (scope 1) per customer
 
 ```{r 4.PEF-ConsEc1Fct, ECHO = TRUE}
 EcEF1 <- read.csv2(fname_in_EcEF1, stringsAsFactors = FALSE,
-                    fileEncoding = "UTF-8")
+                    fileEncoding = "UTF-8", check.names = FALSE)
 PEFConsECF1 <- uS002_PE_ConsolidateFactors(invperc = PEFInvPct,
                              factors = EcEF1,
                              countrymap <- lutC)
@@ -178,9 +178,9 @@ Calculate the PEF-investments (or contracted if not present) for each PEF-custom
 
 ```{r 5.PEF-ConsSect, ECHO = TRUE}
 ICPE <- read.csv2(fname_in_ICPE, stringsAsFactors = FALSE,
-                    fileEncoding = "UTF-8")
+                    fileEncoding = "UTF-8", check.names = FALSE)
 PEFInv <- read.csv2(fname_in_PEFInv, stringsAsFactors = FALSE,
-                    fileEncoding = "UTF-8")
+                    fileEncoding = "UTF-8", check.names = FALSE)
 PEFConsSctrs <- uS003_PE_ConsolidateSectors(investments = PEFInv,
                              contracted = ICPE)
 write.csv2(PEFConsSctrs, file = fname_out_PEFConsSctrs, 
@@ -193,9 +193,9 @@ Calculate the PEF-investments (or contracted if not present) for each PEF-custom
 
 ```{r 6.PEF-ConsSect, ECHO = TRUE}
 ICPE <- read.csv2(fname_in_ICPE, stringsAsFactors = FALSE,
-                    fileEncoding = "UTF-8")
+                    fileEncoding = "UTF-8", check.names = FALSE)
 PEFInv <- read.csv2(fname_in_PEFInv, stringsAsFactors = FALSE,
-                    fileEncoding = "UTF-8")
+                    fileEncoding = "UTF-8", check.names = FALSE)
 
 PEFConsSize <- uS004_PE_ConsolidateSize(investments = PEFInv,
                              contracted = ICPE)
