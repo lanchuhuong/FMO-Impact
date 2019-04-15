@@ -25,7 +25,7 @@
 ## ----------------------------------------------------------------------- 
 ##
 ## LOGIC
-uS007_AbsEms_PrEq <- function(customers, c_ecfactors, c_pkfactors,
+uS007_AbsEms_PrEq2 <- function(customers, c_ecfactors, c_pkfactors,
                               ECF, PKF, sizes, sectors, 
                               costPK_msme, costPK_corp, sectormap) {
 

@@ -30,39 +30,17 @@ uS008_AbsEms_FI <- function(customers, ecfactors, pkfactors, impactcard,
 
   require(tidyverse)
   ## 1 - Read in parameters -------------------------------------------------
-  test <- FALSE
-  if(!test) {
     custG <- customers
     EcEF <- ecfactors
     CpIF <- pkfactors
     ICFI <- impactcard
     lutICS <- sectormap
     lutC <- countrymap
-  } 
-  if(test) {
-    custG <- read.csv2(fname_in_custG, stringsAsFactors = FALSE,
-                         fileEncoding = "UTF-8")
-    custG <- custG[custG$IC_type == "financial institution",]
-    EcEF <- read.csv2(fname_in_EcEF1,
-                          stringsAsFactors = FALSE, fileEncoding = "UTF-8")
-    CpIF <- read.csv2(fname_in_CpIF,
-                         stringsAsFactors = FALSE, fileEncoding = "UTF-8")
-    ICFI <- read.csv2(fname_in_ICFI,
-                      stringsAsFactors = FALSE, fileEncoding = "UTF-8")
-    costPK_corp <- 0.73
-    costPK_msme <- 1.2
-  }
 
   ## 2 - prepare vector with GHG_sectors ---------------------
-  GHG_Sectors <- gsub("_"," ", colnames(EcEF))[-1]
-  GHG_Sectors[2] <- "Business Services"
-  GHG_Sectors[3] <- "Cement & steel manufacturing"
-  GHG_Sectors[11] <- "Mining & Quarrying"
-  GHG_Sectors[17] <- "50% business services 50% construction"
-  GHG_Sectors[18] <- "Central Bank Breakdown"
+  GHG_Sectors <- colnames(EcEF)[-1]
 
-  V0s <- colnames(ICFI)[6:23]
-  V0s <- gsub("_"," ", colnames(ICFI)[6:23])
+  V0s <- colnames(ICFI)[5:22]
   V0s[7] <- "Heavy industry"
   V0m <- vector(mode = "character", 
                    length = length(V0s))
@@ -85,12 +63,12 @@ uS008_AbsEms_FI <- function(customers, ecfactors, pkfactors, impactcard,
     curcust <- custG$Customer_ID[i]
     dfAE$Customer_ID[i] <- curcust
     curcountry <- custG$Country[i]
-    curcountry <- lutC$Model_Region[lutC$Country == curcountry]
-    V2 <- EcEF[EcEF$GHG_country == curcountry,-1]
-    V3 <- CpIF[CpIF$GHG_country == curcountry,-1]
+    curcountry <- lutC$Model_Region[tolower(lutC$Country) == tolower(curcountry)]
+    V2 <- EcEF[EcEF$GHG_Country == curcountry,-1]
+    V3 <- CpIF[CpIF$GHG_Country == curcountry,-1]
     V4 <- ICFI[ICFI$Customer_ID == curcust,]
-    V1 <- V4[,c(6:23)]
-    PrcGI <- custG$IC_prcGreenInv[i]/100
+    V1 <- V4[,c(5:22)]
+    # PrcGI <- custG$IC_prcGreenInv[i]/100
     NetPort <- custG$Net_portfolio[i]
     noNP <- is.na(NetPort)
     nocando <- noNP | NetPort == 0
