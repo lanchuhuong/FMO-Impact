@@ -85,6 +85,7 @@ laydir <- "datalake/infoproducts/GIS_layers/"
 qlkdir <- "datalake/infoproducts/Qlik_cubes/"
 sopdir <- "datalake/infoproducts/sopact_sheets/"
 
+
 ## Setup times and version parameters
 indate = "2019-04-11"
 lutdate = "2019-04-11"
