@@ -73,16 +73,14 @@ uS008_AbsEms_FI <- function(customers, ecfactors, pkfactors, impactcard,
     noNP <- is.na(NetPort)
     nocando <- noNP | NetPort == 0
     if(!nocando) {
-      SecEms <- vector(mode = "numeric", 
-                         length = length(V0m))
+      SecEms <- vector(mode = "numeric", length = length(V0m))
       for(j in c(1:length(V0m))) {
         cursector <- V0m[j]
         SecEms[j] <- NA
         if(!noNP & !is.na(as.numeric(V1[j]))) {
           a <- as.numeric(V2[which(GHG_Sectors %in% cursector)])
           b <- as.numeric(V3[which(GHG_Sectors %in% cursector)])
-          msme <- sum(V4$Volume_of_microfinance,
-                      V4$Volume_of_SME_portfolio, na.rm = TRUE)
+          msme <- sum(V4$Share_micro_loans, V4$Share_SME_loans, na.rm = TRUE)
           c <- ifelse(is.na(msme), 1, 
                       (msme*costPK_msme + (1-msme)*costPK_corp))
           d <- as.numeric(V1[j])
@@ -90,11 +88,25 @@ uS008_AbsEms_FI <- function(customers, ecfactors, pkfactors, impactcard,
           }
         }  
       AbsEms <- sum(SecEms, na.rm = TRUE)
+      AbsEms <- ifelse(AbsEms == 0, NA, AbsEms)
       AbsEms <- ifelse(AbsEms < 0, 0, AbsEms)
-      dfAE$abs_ems[i] <- AbsEms * (1 - 0.2 * PrcGI)
-      dfAE$method[i] <- "modeled"
+      dfAE$abs_ems[i] <- AbsEms
+      dfAE$method[i] <- ifelse(is.na(AbsEms), NA, "modeled")
       }
-    } 
+    if(is.na(dfAE$method[dfAE$Customer_ID == curcust])){
+      curcountry <- custG$Country[i]
+      cursector <- custG$Client_sector[i]
+      GHG_Country <- lutC$Model_Region[toupper(lutC$Country) == curcountry]
+      GHG_Sector <- lutS$Sector_modeled[tolower(lutS$Sector) == tolower(cursector)]
+      SctIx <- as.numeric(which(colnames(EcEF) %in% GHG_Sector))
+      AbsEms <- (EcEF[which(EcEF$GHG_Country == GHG_Country), SctIx] *
+                   CpIF[which(CpIF$GHG_Country == GHG_Country), SctIx]*
+                   custG$Net_portfolio[i] / 10^6)
+      AbsEms <- ifelse(AbsEms < 0, 0, AbsEms)
+      dfAE$method[dfAE$Customer_ID == curcust & !is.na(AbsEms)] <- "nodata"
+      dfAE$abs_ems[dfAE$Customer_ID == curcust] <- AbsEms
+    }
+  } 
 
   ## 6 - Generate output (investment-percentages per customer/country --------
   Out <- arrange(dfAE, desc(Customer_ID))
