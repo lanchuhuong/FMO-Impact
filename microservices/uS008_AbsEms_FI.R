@@ -68,7 +68,6 @@ uS008_AbsEms_FI <- function(customers, ecfactors, pkfactors, impactcard,
     V3 <- CpIF[CpIF$GHG_Country == curcountry,-1]
     V4 <- ICFI[ICFI$Customer_ID == curcust,]
     V1 <- V4[,c(5:22)]
-    # PrcGI <- custG$IC_prcGreenInv[i]/100
     NetPort <- custG$Net_portfolio[i]
     noNP <- is.na(NetPort)
     nocando <- noNP | NetPort == 0
