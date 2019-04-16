@@ -445,8 +445,6 @@ raw$Sector_modeled[raw$Sector_modeled == "Mining & Quarrying"] <-
 raw$Sector_modeled[raw$Sector_modeled ==
                   "1/3 business services – 1/3 trade – 1/3 construction."] <-
                   "1/3 business services – 1/3 trade – 1/3 construction"  
-raw$Sector_modeled[raw$Sector_modeled == "Business Services"] <-
-  "Business services"  
 Map_SctrMdl <- raw
 write.csv2(Map_SctrMdl, fname_out_Map_SctrMdl, row.names = FALSE,
            fileEncoding = "UTF-8")
@@ -464,6 +462,8 @@ raw$Sector_modeled[raw$Sector_modeled == "Mining & Quarrying"] <-
 raw$Sector_modeled[raw$Sector_modeled ==
                   "1/3 business services – 1/3 trade – 1/3 construction."] <-
                   "1/3 business services – 1/3 trade – 1/3 construction"  
+raw$Sector_modeled[raw$Sector_modeled == "Business Services"] <-
+  "Business services"  
 Map_ICSctrMdl <- raw
 write.csv2(Map_ICSctrMdl, fname_out_Map_ICSctrMdl, row.names = FALSE,
            fileEncoding = "UTF-8")
