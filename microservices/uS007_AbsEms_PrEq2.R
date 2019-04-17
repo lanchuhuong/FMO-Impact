@@ -50,7 +50,7 @@ uS007_AbsEms_PrEq2 <- function(customers, c_ecfactors, c_pkfactors,
   ## Sectors in PEFConsSctrs are Impact Card Sectors
   ## Sectors in PEF_ConsECF are GHG Sectors
   ## Sectors in the output need to be IC-Modeled Sectors !
-  ## Please also note the check on V2Agriculture, Ref Xls-tab Calcs!AT219
+  ## Please also note check on V2Agriculture, Ref Xls-tab Calcs!AT219 (BD219)
   ##               remove if not needed after check
   ## 2 - prepare vector with GHG_sectors ---------------------
   GHG_Sectors <- colnames(PEFConsECF)[-1]
@@ -59,17 +59,19 @@ uS007_AbsEms_PrEq2 <- function(customers, c_ecfactors, c_pkfactors,
     dfAE[i,] <- NA
     curcust <- custG$Customer_ID[i]
     dfAE$Customer_ID[i] <- curcust
-    V1 <- PEFConsSctrs[PEFConsSctrs$Customer_ID == curcust,-1]
+    V1 <- PEFConsSctrs[PEFConsSctrs$Customer_ID == curcust,c(2:19)]
     V2 <- PEFConsECF[PEFConsECF$Customer_ID == curcust,-1]
     V3 <- PEFConsPKF[PEFConsPKF$Customer_ID == curcust,-1]
     V4 <- PEFConsSize[PEFConsSize$Customer_ID == curcust,]
     NetPort <- custG$Net_portfolio[i]
     noNP <- is.na(NetPort)
-    nocando <- is.na(V2$Agriculture) |
-              (sum(V2[-1],na.rm = TRUE) == 0 &
+    nocando <- is.na(V1$Agriculture) |
+              (sum(V1,na.rm = TRUE) == 0 &
               NetPort != 0)
     if(!nocando) {
       SecEms <- vector(mode = "numeric", length = lgt)
+      c <- ifelse(is.na(V4$msme), 1, 
+                  (V4$msme*costPK_msme + V4$corporate*costPK_corp))
       for(j in c(1:lgt)) {
         cursector <- lutICS$Sector_modeled[j]
         SctIx <- as.numeric(which(tolower(GHG_Sectors) %in% tolower(cursector)))
@@ -77,8 +79,6 @@ uS007_AbsEms_PrEq2 <- function(customers, c_ecfactors, c_pkfactors,
         if(!noNP & !is.na(as.numeric(V1[j]))) {
           a <- as.numeric(V2[SctIx])
           b <- as.numeric(V3[SctIx])
-          c <- ifelse(is.na(V4$msme), 1, 
-                      (V4$msme*costPK_msme + V4$corporate*costPK_corp))
           d <- as.numeric(V1[j])
           SecEms[j] <- a * b * c * d * NetPort / 10^6
         }
@@ -87,7 +87,7 @@ uS007_AbsEms_PrEq2 <- function(customers, c_ecfactors, c_pkfactors,
       dfAE$abs_ems[i] <- ifelse(AbsEms < 0, 0, AbsEms)
       dfAE$method[i] <- "modeled"
     }
-    if(is.na(dfAE$method[dfAE$Customer_ID == curcust])){
+    if(nocando){
       curcountry <- custG$Country[i]
       cursector <- custG$Client_sector[i]
       GHG_Country <- lutC$Model_Region[toupper(lutC$Country) == curcountry]
