@@ -73,6 +73,7 @@ source("microservices/uS005_AbsEms_Corp.R")
 source("microservices/uS006_AbsEms_PrFin.R")
 source("microservices/uS007_AbsEms_PrEq2.R")
 source("microservices/uS008_AbsEms_FI.R")
+source("microservices/uS009_AbsEms_Un.R")
 
 ## Setup locations in data lake
 rawdir <- "datalake/raw_data/"
@@ -121,6 +122,8 @@ fname_out_AE_PrEq1 <- paste0(inddir,"KPI_aGHG_PrEq1", "_", outdate,".csv")
 fname_out_AE_PrEq2 <- paste0(inddir,"KPI_aGHG_PrEq2", "_", outdate,".csv")
 fname_out_AE_FI1 <- paste0(inddir,"KPI_aGHG_FI1", "_", outdate,".csv")
 fname_out_AE_FI2 <- paste0(inddir,"KPI_aGHG_FI2", "_", outdate,".csv")
+fname_out_AE_Un1 <- paste0(inddir,"KPI_aGHG_Un1", "_", outdate,".csv")
+fname_out_AE_Un2 <- paste0(inddir,"KPI_aGHG_Un2", "_", outdate,".csv")
 fname_out_AE <- paste0(inddir,"KPI_aGHG", "_", outdate,".csv")
 
 ```
@@ -288,7 +291,7 @@ head(AE_PrEq1, 5)
 Calculate absolute emissions (scope 2) for each Private Equity Fund customer.
 
 ```{r 6.AbsEms-PE2, echo=FALSE}
-PEFConsEC2fctrs <- read.csv2(fname_in_PEFConsEC2fctrs, 
+PEFConsECF <- read.csv2(fname_in_PEFConsEC2fctrs, 
                            stringsAsFactors = FALSE, fileEncoding = "UTF-8",
                            check.names = FALSE)
 EcEF <- read.csv2(fname_in_EcEF2, 
@@ -331,19 +334,19 @@ lutICS <- read.csv2(fname_in_lutICS, stringsAsFactors = FALSE,
 lutC <- read.csv2(fname_in_lutC, stringsAsFactors = FALSE,
                                      fileEncoding = "UTF-8", check.names = FALSE)
 
-# AE_FI1 <- uS008_AbsEms_FI(customers = custG,
-#                            ecfactors = EcEF,
-#                            pkfactors = CpIF,
-#                            impactcard = ICFI,
-#                            costPK_msme = 1.19852941176471,
-#                            costPK_corp = 0.727941176470588,
-#                            countrymap = lutC,
-#                            sectormap = lutICS)
+AE_FI1 <- uS008_AbsEms_FI(customers = custG,
+                          ecfactors = EcEF,
+                          pkfactors = CpIF,
+                          impactcard = ICFI,
+                          costPK_msme = 1.19852941176471,
+                          costPK_corp = 0.727941176470588,
+                          countrymap = lutC,
+                          sectormap = lutICS)
 
-#write.csv2(AE_FI1, file = fname_out_AE_FI1, row.names = FALSE,
-#           fileEncoding = "UTF-8")
+write.csv2(AE_FI1, file = fname_out_AE_FI1, row.names = FALSE,
+           fileEncoding = "UTF-8")
 
-#head(AE_FI1, 5)
+head(AE_FI1, 5)
 ```
 
 ### Financial Institutions (scope 2)
@@ -351,26 +354,73 @@ lutC <- read.csv2(fname_in_lutC, stringsAsFactors = FALSE,
 Calculate absolute emissions (scope 2) for each Financial Institution.
 
 ```{r 8.AbsEms-FI2, echo=FALSE}
-custG <- read.csv2(fname_in_custG, stringsAsFactors = FALSE,
-                   fileEncoding = "UTF-8", check.names = FALSE)
-custG <- custG[custG$IC_type == "financial institution",]
 EcEF <- read.csv2(fname_in_EcEF2, stringsAsFactors = FALSE,
                                   fileEncoding = "UTF-8", check.names = FALSE)
 
-#AE_FI2 <- uS008_AbsEms_FI(customers = custG,
-#                            ecfactors = EcEF,
-#                            pkfactors = CpIF,
-#                            impactcard = ICFI,
-#                            costPK_msme = 1.19852941176471,
-#                            costPK_corp = 0.727941176470588,
-#                            countrymap = lutC,
-#                            sectormap = lutICS)
+AE_FI2 <- uS008_AbsEms_FI(customers = custG,
+                            ecfactors = EcEF,
+                            pkfactors = CpIF,
+                            impactcard = ICFI,
+                            costPK_msme = 1.19852941176471,
+                            costPK_corp = 0.727941176470588,
+                            countrymap = lutC,
+                            sectormap = lutICS)
 
-#write.csv2(AE_FI2, file = fname_out_AE_FI2, row.names = FALSE,
-#           fileEncoding = "UTF-8")
+write.csv2(AE_FI2, file = fname_out_AE_FI2, row.names = FALSE,
+           fileEncoding = "UTF-8")
 
-#head(AE_FI2, 5)
+head(AE_FI2, 5)
 ```
+
+### Client of unknown type (scope 1)
+
+Calculate absolute emissions (scope 1) based on no data for each client of unknown type.
+
+```{r 8.AbsEms-Un1, echo=FALSE}
+custG <- read.csv2(fname_in_custG, stringsAsFactors = FALSE,
+                   fileEncoding = "UTF-8", check.names = FALSE)
+custG <- custG[custG$IC_Type == "unknown",]
+EcEF <- read.csv2(fname_in_EcEF1, stringsAsFactors = FALSE,
+                                  fileEncoding = "UTF-8", check.names = FALSE)
+CpIF <- read.csv2(fname_in_CpIF, stringsAsFactors = FALSE,
+                                 fileEncoding = "UTF-8", check.names = FALSE)
+lutS <- read.csv2(fname_in_lutS, stringsAsFactors = FALSE,
+                                     fileEncoding = "UTF-8", check.names = FALSE)
+lutC <- read.csv2(fname_in_lutC, stringsAsFactors = FALSE,
+                                     fileEncoding = "UTF-8", check.names = FALSE)
+
+AE_Un1 <- uS009_AbsEms_Un(customers = custG,
+                          ecfactors = EcEF,
+                          pkfactors = CpIF,
+                          countrymap = lutC,
+                          sectormap = lutS)
+
+write.csv2(AE_Un1, file = fname_out_AE_Un1, row.names = FALSE,
+           fileEncoding = "UTF-8")
+
+head(AE_Un1, 5)
+```
+
+### Client of unknown type (scope 2)
+
+Calculate absolute emissions (scope 1) based on no data for each client of unknown type.
+
+```{r 8.AbsEms-Un1, echo=FALSE}
+EcEF <- read.csv2(fname_in_EcEF2, stringsAsFactors = FALSE,
+                                  fileEncoding = "UTF-8", check.names = FALSE)
+
+AE_Un2 <- uS009_AbsEms_Un(customers = custG,
+                          ecfactors = EcEF,
+                          pkfactors = CpIF,
+                          countrymap = lutC,
+                          sectormap = lutS)
+
+write.csv2(AE_Un2, file = fname_out_AE_Un2, row.names = FALSE,
+           fileEncoding = "UTF-8")
+
+head(AE_Un2, 5)
+```
+
 
 ## Results
 
@@ -383,14 +433,17 @@ custG <- read.csv2(fname_in_custG, stringsAsFactors = FALSE,
 
 colnames(AE_Corp1) <- paste0(colnames(AE_Corp1),"_1")
 colnames(AE_Corp2) <- paste0(colnames(AE_Corp2),"_2")
-#colnames(AE_FI1) <- paste0(colnames(AE_FI1),"_1")
-#colnames(AE_FI2) <- paste0(colnames(AE_FI2),"_2")
+colnames(AE_FI1) <- paste0(colnames(AE_FI1),"_1")
+colnames(AE_FI2) <- paste0(colnames(AE_FI2),"_2")
 colnames(AE_PrEq1) <- paste0(colnames(AE_PrEq1),"_1")
 colnames(AE_PrEq2) <- paste0(colnames(AE_PrEq2),"_2")
 colnames(AE_PrFin1) <- paste0(colnames(AE_PrFin1),"_1")
 colnames(AE_PrFin2) <- paste0(colnames(AE_PrFin2),"_2")
+colnames(AE_Un1) <- paste0(colnames(AE_Un1),"_1")
+colnames(AE_Un2) <- paste0(colnames(AE_Un2),"_2")
 AE <- rbind(cbind(AE_Corp1, AE_Corp2),
-#            cbind(AE_FI1, AE_FI2),
+            cbind(AE_FI1, AE_FI2),
+            cbind(AE_Un1, AE_Un2),
             cbind(AE_PrEq1, AE_PrEq2),
             cbind(AE_PrFin1, AE_PrFin2))
 AE <- select(AE, c(1,2,5,6))
@@ -420,8 +473,14 @@ AEsum <- AE %>%
             Inv = sum(NetPort, na.rm = TRUE)) %>%
   mutate(GHGpMEur = (AbsEms / (Inv / 10^6)))
 
+
+tot <- round(sum(AEsum$AbsEms, na.rm = TRUE)/10^3,0)
+
 AEsum
 ```
+
+Total amount of Absolute GHG Emissions is `r tot` (MtCO2e/yr). This includes scopes 1 and 2.
+
 
 ### Show stacked bar chart of emissions per scope within departments
 
