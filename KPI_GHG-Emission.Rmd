@@ -45,26 +45,31 @@ IN/OUTPUT
 
 | In/Out | Filename   |  Size | Description |
 |:------|:------------------|----:|:------------------------------|
-| Input | CustFac_General.csv | 247/18 | |
-| Input | IC_Corporate.csv | 48/7 | |
-| Input | IC_ProjFin.csv | 59/6 | |
-| Input | IC_FinInst.csv | 101/23 | |
-| Input | IC_PrivEq.csv | 39/43 | |
-| Input | PEF_Investments.csv | 117/5 | |
-| Input | PEF_RegionPerc.csv | 18/3 | |
-| Input | Fctr_EcEmis1.csv | 23/19 | |
-| Input | Fctr_EcEmis2.csv | 23/19 | |
-| Input | Fctr_CapInt.csv | 23/19 | |
-| Input | Fctr_CBbrkdwn.csv | 23/17 | |
-| Input | Fctr_Out2Elec.csv | 23/17 | |
-| LUT | MAP_CntrReg.csv | 87/2 | |
-| LUT | MAP_SctrMdl.csv | 21/2 | |
-| LUT | MAP_ICSctrMdl.csv | 18/2 | |
-| Output | KPI_aGHG.csv | 23/17 | |
+| Input | Cust_General.csv | 10 columns | General customer info |
+| Input | IC_Corporate.csv | 7 columns | Impact Card Corporates |
+| Input | IC_ProjFin.csv | 6 columns | Impact Card Proj. Fin. |
+| Input | IC_FinInst.csv | 22 columns | Impact Card Fin. Institutions |
+| Input | IC_PrivEq.csv | 22 columns | Impact Card Priv. Equity Funds |
+| Input | PEF_Investments.csv | 5 columns | Priv.Eq. Investments at review |
+| Input | PEF_RegionPerc.csv | 3 columns | Priv.Eq. Asset% at contract |
+| Input | Fctr_EcEmis1.csv | 23/19 | Economic Emission Factors Scope 1 |
+| Input | Fctr_EcEmis2.csv | 23/19 | Economic Emission Factors Scope 2 |
+| Input | Fctr_CapInt.csv | 23/19 | Capital Intensity Factors |
+| Input | Fctr_CBbrkdwn.csv | 23/17 | Central Bank Breakdown factors |
+| Input | Fctr_Out2Elec.csv | 23/17 | Output to Electricity |
+| Input | PEFConsEC1fctrs.csv | 20 columns | Consolidated over EcEF1 |
+| Input | PEFConsEC2fctrs.csv | 20 columns | Consolidated over EcEF2 |
+| Input | PEFConsPKfctrs.csv | 20 columns | Consolidated over CpIF |
+| Input | PEFConsSctrs.csv | 20 columns | Consolidated over sectors |
+| Input | PEFConsSize.csv | 20 columns | Consolidated over MSME/Corp |
+| LUT | MAP_CntrReg.csv | 127/2 | Map Client-country -> GHG-Region |
+| LUT | MAP_SctrMdl.csv | 21/2 | Map Client-sector -> GHG-Sector |
+| LUT | MAP_ICSctrMdl.csv | 18/2 | Map Client-sector -> IC-Sector |
+| Output | KPI_aGHG.csv | 7 columns | Yearly GHG emissions per customer|
 
 ***
 
-```{r setup_env, echo=FALSE, warning=FALSE}
+```{r setup_env, echo=FALSE, warning=FALSE, include=FALSE}
 ## Load packages used
 library("tidyverse", warn.conflicts=FALSE)
 
@@ -238,8 +243,10 @@ AE_PrFin2 <- uS006_AbsEms_PrFin(impactcard = ICPF,
 write.csv2(AE_PrFin2, file = fname_out_AE_PrFin2, row.names = FALSE,
            fileEncoding = "UTF-8")
 
-sum(AE_PrFin2$abs_ems, na.rm = TRUE)
+tot <- round(sum(AE_PrFin2$abs_ems, na.rm = TRUE)/10^3, 0)
 ```
+Absolute emissions: `r tot` (MtCO2e/yr)
+
 
 ### Private Equity Funds (scope 1)
 
@@ -284,8 +291,12 @@ AE_PrEq1 <- uS007_AbsEms_PrEq2(customers = custG,
 write.csv2(AE_PrEq1, file = fname_out_AE_PrEq1, row.names = FALSE,
            fileEncoding = "UTF-8")
 
-head(AE_PrEq1, 5)
+tot <- round(sum(AE_PrEq1$abs_ems, na.rm = TRUE)/10^3, 0)
 ```
+
+Absolute emissions total: `r tot` (MtCO2e/yr)
+
+
 ### Private Equity Funds (scope 2)
 
 Calculate absolute emissions (scope 2) for each Private Equity Fund customer.
@@ -312,8 +323,11 @@ AE_PrEq2 <- uS007_AbsEms_PrEq2(customers = custG,
 write.csv2(AE_PrEq2, file = fname_out_AE_PrEq1, row.names = FALSE,
            fileEncoding = "UTF-8")
 
-head(AE_PrEq2, 5)
+tot <- round(sum(AE_PrEq2$abs_ems, na.rm = TRUE)/10^3, 0)
 ```
+
+Absolute emissions total: `r tot` (MtCO2e/yr)
+
 
 ### Financial Institutions (scope 1)
 
@@ -346,8 +360,11 @@ AE_FI1 <- uS008_AbsEms_FI(customers = custG,
 write.csv2(AE_FI1, file = fname_out_AE_FI1, row.names = FALSE,
            fileEncoding = "UTF-8")
 
-head(AE_FI1, 5)
+tot <- round(sum(AE_FI1$abs_ems, na.rm = TRUE)/10^3, 0)
 ```
+
+Absolute emissions total: `r tot` (MtCO2e/yr)
+
 
 ### Financial Institutions (scope 2)
 
@@ -369,8 +386,11 @@ AE_FI2 <- uS008_AbsEms_FI(customers = custG,
 write.csv2(AE_FI2, file = fname_out_AE_FI2, row.names = FALSE,
            fileEncoding = "UTF-8")
 
-head(AE_FI2, 5)
+tot <- round(sum(AE_FI2$abs_ems, na.rm = TRUE)/10^3, 0)
 ```
+
+Absolute emissions total: `r tot` (MtCO2e/yr)
+
 
 ### Client of unknown type (scope 1)
 
@@ -398,14 +418,17 @@ AE_Un1 <- uS009_AbsEms_Un(customers = custG,
 write.csv2(AE_Un1, file = fname_out_AE_Un1, row.names = FALSE,
            fileEncoding = "UTF-8")
 
-head(AE_Un1, 5)
+tot <- round(sum(AE_Un1$abs_ems, na.rm = TRUE)/10^3, 0)
 ```
+
+Absolute emissions total: `r tot` (MtCO2e/yr)
+
 
 ### Client of unknown type (scope 2)
 
-Calculate absolute emissions (scope 1) based on no data for each client of unknown type.
+Calculate absolute emissions (scope 2) based on no data for each client of unknown type.
 
-```{r 8.AbsEms-Un1, echo=FALSE}
+```{r 8.AbsEms-Un2, echo=FALSE}
 EcEF <- read.csv2(fname_in_EcEF2, stringsAsFactors = FALSE,
                                   fileEncoding = "UTF-8", check.names = FALSE)
 
@@ -418,8 +441,10 @@ AE_Un2 <- uS009_AbsEms_Un(customers = custG,
 write.csv2(AE_Un2, file = fname_out_AE_Un2, row.names = FALSE,
            fileEncoding = "UTF-8")
 
-head(AE_Un2, 5)
+tot <- round(sum(AE_Un2$abs_ems, na.rm = TRUE)/10^3, 0)
 ```
+
+Absolute emissions total: `r tot` (MtCO2e/yr)
 
 
 ## Results
