@@ -119,16 +119,6 @@ fname_in_PEFConsEC2fctrs <- paste0(dptdir,"PEF_ConsECF2", "_", outdate,".csv")
 fname_in_PEFConsSize <- paste0(dptdir,"PEF_ConsSize", "_", outdate,".csv")
 fname_in_PEFConsSctrs <- paste0(dptdir,"PEF_ConsSctrs", "_", outdate,".csv")
 
-fname_out_AE_Corp1 <- paste0(inddir,"KPI_aGHG_Corp1", "_", outdate,".csv")
-fname_out_AE_Corp2 <- paste0(inddir,"KPI_aGHG_Corp2", "_", outdate,".csv")
-fname_out_AE_PrFin1 <- paste0(inddir,"KPI_aGHG_PrFin1", "_", outdate,".csv")
-fname_out_AE_PrFin2 <- paste0(inddir,"KPI_aGHG_PrFin2", "_", outdate,".csv")
-fname_out_AE_PrEq1 <- paste0(inddir,"KPI_aGHG_PrEq1", "_", outdate,".csv")
-fname_out_AE_PrEq2 <- paste0(inddir,"KPI_aGHG_PrEq2", "_", outdate,".csv")
-fname_out_AE_FI1 <- paste0(inddir,"KPI_aGHG_FI1", "_", outdate,".csv")
-fname_out_AE_FI2 <- paste0(inddir,"KPI_aGHG_FI2", "_", outdate,".csv")
-fname_out_AE_Un1 <- paste0(inddir,"KPI_aGHG_Un1", "_", outdate,".csv")
-fname_out_AE_Un2 <- paste0(inddir,"KPI_aGHG_Un2", "_", outdate,".csv")
 fname_out_AE <- paste0(inddir,"KPI_aGHG", "_", outdate,".csv")
 
 ```
@@ -171,9 +161,6 @@ AE_Corp1 <- uS005_AbsEms_Corp(impactcard = ICCp,
                              scope = 1,
                              countrymap = lutC,
                              sectormap = lutS)
-write.csv2(AE_Corp1, file = fname_out_AE_Corp1, row.names = FALSE,
-           fileEncoding = "UTF-8")
-
 head(AE_Corp1, 10)
 ```
 
@@ -192,9 +179,6 @@ AE_Corp2 <- uS005_AbsEms_Corp(impactcard = ICCp,
                              scope = 2,
                              countrymap = lutC,
                              sectormap = lutS)
-write.csv2(AE_Corp2, file = fname_out_AE_Corp2, row.names = FALSE,
-           fileEncoding = "UTF-8")
-
 table(AE_Corp2$method)
 ```
 
@@ -218,9 +202,6 @@ AE_PrFin1 <- uS006_AbsEms_PrFin(impactcard = ICPF,
                              countrymap = lutC,
                              sectormap = lutS)
 
-write.csv2(AE_PrFin1, file = fname_out_AE_PrFin1, row.names = FALSE,
-           fileEncoding = "UTF-8")
-
 hist(AE_PrFin1$abs_ems, main = "Histogram of Emissions",
      xlab = "Absolute emissions")
 ```
@@ -239,9 +220,6 @@ AE_PrFin2 <- uS006_AbsEms_PrFin(impactcard = ICPF,
                              scope = 2,
                              countrymap = lutC,
                              sectormap = lutS)
-
-write.csv2(AE_PrFin2, file = fname_out_AE_PrFin2, row.names = FALSE,
-           fileEncoding = "UTF-8")
 
 tot <- round(sum(AE_PrFin2$abs_ems, na.rm = TRUE)/10^3, 0)
 ```
@@ -288,9 +266,6 @@ AE_PrEq1 <- uS007_AbsEms_PrEq2(customers = custG,
                             costPK_corp = 0.727941176470588,
                             sectormap = lutICS)
 
-write.csv2(AE_PrEq1, file = fname_out_AE_PrEq1, row.names = FALSE,
-           fileEncoding = "UTF-8")
-
 tot <- round(sum(AE_PrEq1$abs_ems, na.rm = TRUE)/10^3, 0)
 ```
 
@@ -319,9 +294,6 @@ AE_PrEq2 <- uS007_AbsEms_PrEq2(customers = custG,
                             costPK_msme = 1.19852941176471,
                             costPK_corp = 0.727941176470588,
                             sectormap = lutICS)
-
-write.csv2(AE_PrEq2, file = fname_out_AE_PrEq1, row.names = FALSE,
-           fileEncoding = "UTF-8")
 
 tot <- round(sum(AE_PrEq2$abs_ems, na.rm = TRUE)/10^3, 0)
 ```
@@ -357,9 +329,6 @@ AE_FI1 <- uS008_AbsEms_FI(customers = custG,
                           countrymap = lutC,
                           sectormap = lutICS)
 
-write.csv2(AE_FI1, file = fname_out_AE_FI1, row.names = FALSE,
-           fileEncoding = "UTF-8")
-
 tot <- round(sum(AE_FI1$abs_ems, na.rm = TRUE)/10^3, 0)
 ```
 
@@ -382,9 +351,6 @@ AE_FI2 <- uS008_AbsEms_FI(customers = custG,
                             costPK_corp = 0.727941176470588,
                             countrymap = lutC,
                             sectormap = lutICS)
-
-write.csv2(AE_FI2, file = fname_out_AE_FI2, row.names = FALSE,
-           fileEncoding = "UTF-8")
 
 tot <- round(sum(AE_FI2$abs_ems, na.rm = TRUE)/10^3, 0)
 ```
@@ -415,9 +381,6 @@ AE_Un1 <- uS009_AbsEms_Un(customers = custG,
                           countrymap = lutC,
                           sectormap = lutS)
 
-write.csv2(AE_Un1, file = fname_out_AE_Un1, row.names = FALSE,
-           fileEncoding = "UTF-8")
-
 tot <- round(sum(AE_Un1$abs_ems, na.rm = TRUE)/10^3, 0)
 ```
 
@@ -438,9 +401,6 @@ AE_Un2 <- uS009_AbsEms_Un(customers = custG,
                           countrymap = lutC,
                           sectormap = lutS)
 
-write.csv2(AE_Un2, file = fname_out_AE_Un2, row.names = FALSE,
-           fileEncoding = "UTF-8")
-
 tot <- round(sum(AE_Un2$abs_ems, na.rm = TRUE)/10^3, 0)
 ```
 
@@ -456,26 +416,26 @@ Combine all absolute emissions datapoints and for each customer add the Net Port
 custG <- read.csv2(fname_in_custG, stringsAsFactors = FALSE,
                    fileEncoding = "UTF-8", check.names = FALSE)
 
-colnames(AE_Corp1) <- paste0(colnames(AE_Corp1),"_1")
-colnames(AE_Corp2) <- paste0(colnames(AE_Corp2),"_2")
-colnames(AE_FI1) <- paste0(colnames(AE_FI1),"_1")
-colnames(AE_FI2) <- paste0(colnames(AE_FI2),"_2")
-colnames(AE_PrEq1) <- paste0(colnames(AE_PrEq1),"_1")
-colnames(AE_PrEq2) <- paste0(colnames(AE_PrEq2),"_2")
-colnames(AE_PrFin1) <- paste0(colnames(AE_PrFin1),"_1")
-colnames(AE_PrFin2) <- paste0(colnames(AE_PrFin2),"_2")
-colnames(AE_Un1) <- paste0(colnames(AE_Un1),"_1")
-colnames(AE_Un2) <- paste0(colnames(AE_Un2),"_2")
-AE <- rbind(cbind(AE_Corp1, AE_Corp2),
-            cbind(AE_FI1, AE_FI2),
-            cbind(AE_Un1, AE_Un2),
-            cbind(AE_PrEq1, AE_PrEq2),
-            cbind(AE_PrFin1, AE_PrFin2))
-AE <- select(AE, c(1,2,5,6))
+AE_Corp <- bind_cols(AE_Corp1, AE_Corp2)
+AE_Corp <- mutate(AE_Corp, Type = "corporate")
+AE_FI <- bind_cols(AE_FI1, AE_FI2)
+AE_FI <- mutate(AE_FI, Type = "financial institution")
+AE_PrFin <- bind_cols(AE_PrFin1, AE_PrFin2)
+AE_PrFin <- mutate(AE_PrFin, Type = "project finance")
+AE_PrEq <- bind_cols(AE_PrEq1, AE_PrEq2)
+AE_PrEq <- mutate(AE_PrEq, Type = "private equity fund")
+AE_Un <- bind_cols(AE_Un1, AE_Un2)
+AE_Un <- mutate(AE_Un, Type = "unknown")
+AE <- bind_rows(AE_Corp, AE_PrFin, AE_PrEq, AE_FI, AE_Un)
+AE <- select(AE, c(1,2,5,6,7))
 colnames(AE)[1] <- "Customer_ID"
 colnames(AE)[2] <- "Scope_1"
 colnames(AE)[3] <- "Scope_2"
 colnames(AE)[4] <- "Method"
+colnames(AE)[5] <- "Type"
+AE <- arrange(AE, Customer_ID)
+rm(list=ls(pattern="AE_"))
+
 AE <- mutate(AE, Dep = NA, NetPort = NA)
 for (i in c(1:nrow(AE))) {
   curcust <- AE$Customer_ID[i]
@@ -526,5 +486,3 @@ G1 <- ggplot() + geom_bar(aes(y = ems, x = Dep, fill = scope),
                                                            vjust = 1))
 G1
 ```
-
-
