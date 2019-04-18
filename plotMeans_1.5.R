@@ -52,39 +52,31 @@ PWA <- read.csv2(fname_in_PWA,
                  stringsAsFactors = FALSE,
                  fileEncoding = "UTF-8")
 colnames(PWA) <- gsub("X", "", colnames(PWA))
-pw15 <- PWA[5,c(4:11)]
-pw15 <- gather(pw15, `2018`, `2019`,`2020`,`2021`,`2022`,
-               `2023`,`2024`,`2025`,
-               key = Year, value = ems)
-pw15$Year <- as.numeric(pw15$Year)
-pw20 <- PWA[6,c(4:11)]
-pw20 <- gather(pw20, `2018`, `2019`,`2020`,`2021`,`2022`,
-               `2023`,`2024`,`2025`,
-               key = Year, value = ems)
-pw20$Year <- as.numeric(pw20$Year)
-alw15 <- PWA[3,c(4:11)]
-alw15 <- gather(alw15, `2018`, `2019`,`2020`,`2021`,`2022`,
-                `2023`,`2024`,`2025`,
-                key = Year, value = ems)
-alw15$Year <- as.numeric(alw15$Year)
-alw20 <- PWA[4,c(4:11)]
-alw20 <- gather(alw20, `2018`, `2019`,`2020`,`2021`,`2022`,
-                `2023`,`2024`,`2025`,
-                key = Year, value = ems)
-alw20$Year <- as.numeric(alw20$Year)
+PWAg <- PWA %>%
+  gather(key = Year, value = ems, -type) %>%
+  mutate(Year = as.numeric(Year)) %>%
+  filter(type != "1.5 DS - 2016 Allowance") %>%
+  filter(type != "2DS - 2016 Allowance") %>%
+  filter(Year > 2017)
 
-## 3 - shift means to 3.38 per 2018 by using a factor
-##     to simulate a sum with a confidence interval
-# oldmean <- mean(AE$Ems, na.rm = TRUE)
-# newtot <- 3.37862339163655
-# shift <- newtot/oldmean
-# AEs <- mutate(AE, Ems = Ems * shift)
+pw15 <- PWAg %>%
+  filter(type == "1.5 DS - 2018 Pathway") %>%
+  select(-type)
+pw20 <- PWAg %>%
+  filter(type == "2DS - 2018 Pathway") %>%
+  select(-type)
+alw15 <- PWAg %>%
+  filter(type == "1.5 DS - 2018 Allowance") %>%
+  select(-type)
+alw20 <- PWAg %>%
+  filter(type == "2DS - 2018 Allowance") %>%
+  select(-type)
 
-## 4 - generate emissions previous years, considering (1.5C pathway): 
+## 3 - generate emissions previous years, considering (1.5C pathway): 
 # perc <- 1.5
 # peru <- perc/100
 # sdev <- abs(peru)
-# AEyr <- AEs %>%
+# AEyr <- AE %>%
 #   select(Ems) %>%
 #   rename(Yr_2018 = Ems) %>%
 #   mutate(Yr_2017 = (Yr_2018 * (1 + rnorm(1, mean=peru, sd=sdev)))) %>%
@@ -99,7 +91,6 @@ colnames(AEg) <- gsub("Yr_", "", colnames(AEg))
 AEg <- gather(AEg, `2018`, `2017`,`2016`,`2015`,
               key = "Year", value = "ems")
 AEg$Year <- as.numeric(AEg$Year)
-
 
 ## 6 - plotting the emissions and adding the allowances
 g <- ggplot(data=AEg, aes(x=Year, y=ems)) +
